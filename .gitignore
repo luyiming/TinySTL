@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+# clang format/complete files
+.clang-format
+.clang_complete
+
+# unit test exec file
+testMain
