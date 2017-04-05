@@ -1,5 +1,7 @@
-#include "gtest/gtest.h"
+#ifndef VECTORTEST_HPP
+#define VECTORTEST_HPP
 
+#include "gtest/gtest.h"
 #include "Vector.hpp"
 
 TEST(VectorTest, Misc) {
@@ -121,3 +123,5 @@ TEST(VectorTest, ErasePop) {
         EXPECT_EQ((int)i, vec.at(i));
     }
 }
+
+#endif  // VECTORTEST_HPP
