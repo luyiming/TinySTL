@@ -1,4 +1,5 @@
 #include "sampleTest.hpp"
+#include "VectorTest.hpp"
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
