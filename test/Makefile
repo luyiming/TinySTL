@@ -2,7 +2,7 @@
 GTEST_DIR = googletest/googletest
 
 # TinySTL test header files.
-TEST_HEADERS = ./*.hpp # ../*.hpp ../detail/*.hpp
+TEST_HEADERS = ./*.hpp ../*.hpp ../detail/*.hpp
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -10,7 +10,7 @@ TEST_HEADERS = ./*.hpp # ../*.hpp ../detail/*.hpp
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread
+CXXFLAGS += -g -Wall -Wextra -pthread -std=c++11
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -38,7 +38,7 @@ libgtest.a : gtest-all.o
 
 # Build unittest
 testMain.o : testMain.cpp $(TEST_HEADERS) $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c testMain.cpp
+	$(CXX) $(CPPFLAGS) -I.. $(CXXFLAGS) -c testMain.cpp
 
 testMain : testMain.o libgtest.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
