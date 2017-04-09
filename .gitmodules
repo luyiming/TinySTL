@@ -1,3 +1,3 @@
-[submodule "test/googletest"]
-	path = test/googletest
+[submodule "TinySTL/test/googletest"]
+	path = TinySTL/test/googletest
 	url = https://github.com/google/googletest.git
