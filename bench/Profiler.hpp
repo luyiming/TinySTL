@@ -2,58 +2,53 @@
 #define PROFILER_HPP
 
 #include <chrono>
+#include <ctime>
+#include <exception>
 #include <iostream>
-#include <vector>
-
-using namespace std::chrono;
-using namespace std;
+#include <memory>
+#include <ratio>
+#include <utility>
 
 class Profiler {
    private:
-    vector<int> numbers;
-    vector<steady_clock::time_point> startTimes;
-    vector<steady_clock::time_point> stopTimes;
+    Profiler() = delete;
 
    public:
-    // functions that take one int arguement and return void
-    using FuncType = void(int);
-    void start(int n);
-    void stop();
-    void dump();
-    void AlgorithmProfiler(FuncType &);
+    using SteadyClock = std::chrono::steady_clock;
+    using TimePoint = SteadyClock::time_point;
+    using DurationTime = std::chrono::duration<double, std::ratio<1, 1>>;
+
+   private:
+    static DurationTime duringTime;
+    static TimePoint startTime;
+    static TimePoint stopTime;
+
+   public:
+    static void start();
+    static void stop();
+    static void dumpDuringTime(std::ostream& os = std::cout);
+
+    static double second();
+    static double millisecond();
 };
 
-void Profiler::start(int n) {
-    numbers.push_back(n);
-    startTimes.push_back(steady_clock::now());
+Profiler::TimePoint Profiler::startTime;
+Profiler::TimePoint Profiler::stopTime;
+Profiler::DurationTime Profiler::duringTime;
+
+void Profiler::start() { startTime = SteadyClock::now(); }
+
+void Profiler::stop() {
+    stopTime = SteadyClock::now();
+    duringTime = std::chrono::duration_cast<DurationTime>(stopTime - startTime);
 }
 
-void Profiler::stop() { stopTimes.push_back(steady_clock::now()); }
-
-void Profiler::dump() {
-    cout<<"-- n --|----- time ---------------" << endl;
-    duration<double, std::milli> time_span;
-    for (int i = 0; i < numbers.size(); i++) {
-        printf("%-8d ", numbers[i]);
-        time_span = duration_cast<duration<double, std::milli>>(
-            stopTimes.at(i) - startTimes.at(i));
-        cout << time_span.count() << " ms" << endl;
-    }
+void Profiler::dumpDuringTime(std::ostream& os) {
+    os << duringTime.count() * 1000 << " milliseconds" << std::endl;
 }
 
-void Profiler::AlgorithmProfiler(FuncType &func) {
-    steady_clock::time_point t1 = steady_clock::now();
+double Profiler::second() { return duringTime.count(); }
 
-    std::cout << "running n = 1000..." << std::endl;
-    func(1000);
-
-    steady_clock::time_point t2 = steady_clock::now();
-
-    duration<double, std::milli> time_span =
-        duration_cast<duration<double, std::milli>>(t2 - t1);
-
-    std::cout << "It took " << time_span.count() << " milliseconds.";
-    std::cout << std::endl;
-}
+double Profiler::millisecond() { return duringTime.count() * 1000; }
 
 #endif  // PROFILER_HPP

@@ -53,22 +53,23 @@ double findMinDistance(Point *Nodes, int low, int high) {
     sort(Nodes + low, Nodes + high + 1);
 
     int xMedianIndex = (low + high) / 2;
-    int xMedian = Nodes[xMedianIndex].x;
+    double xMedian = Nodes[xMedianIndex].x;
 
     if (Nodes[low].x == Nodes[high].x) {
         // same point
         if (Nodes[low].y == Nodes[high].y) {
             return 0.0;
+        } else {
+            // all points are on the same vertical line, so flip them
+            for (int i = low; i <= high; i++) {
+                Nodes[i].flip();
+            }
+            double ret = findMinDistance(Nodes, low, high);
+            for (int i = low; i <= high; i++) {
+                Nodes[i].flip();
+            }
+            return ret;
         }
-        // flip
-        for (int i = low; i <= high; i++) {
-            Nodes[i].flip();
-        }
-        double ret = findMinDistance(Nodes, low, high);
-        for (int i = low; i <= high; i++) {
-            Nodes[i].flip();
-        }
-        return ret;
     }
 
     // ensure both parts have nodes
@@ -81,76 +82,21 @@ double findMinDistance(Point *Nodes, int low, int high) {
     double d2 = findMinDistance(Nodes, xMedianIndex + 1, high);
     double d = d1 < d2 ? d1 : d2;
 
-    int leftCandidatesIndex = xMedianIndex,
-        rightCandidatesIndex = xMedianIndex + 1;
-    while (leftCandidatesIndex >= low) {
-        if ((double)Nodes[leftCandidatesIndex].x >= (double)xMedian - d) {
-            leftCandidatesIndex--;
-        } else {
-            break;
-        }
-    }
-    leftCandidatesIndex--;
-    if (leftCandidatesIndex < low) {
-        leftCandidatesIndex = low;
-    }
-    while (rightCandidatesIndex <= high) {
-        if ((double)Nodes[rightCandidatesIndex].x <= (double)xMedian + d) {
-            rightCandidatesIndex++;
-        } else {
-            break;
-        }
-    }
-    rightCandidatesIndex++;
-    if (rightCandidatesIndex > high) {
-        rightCandidatesIndex = high;
-    }
-    //  cout << "xMedianIndex: " << xMedianIndex << endl;
-    //  cout << "leftCandidatesIndex: " << leftCandidatesIndex << endl;
-    //  cout << "rightCandidatesIndex: " << rightCandidatesIndex << endl;
+    int leftCandidatesIndex = xMedianIndex + 1,
+        rightCandidatesIndex = xMedianIndex;
 
-    /*
-      for (int i = low; i < leftCandidatesIndex; i++) {
-        if ((double)Nodes[i].x >= (double)xMedian - d) {
-          cout << "1.d: " << d << endl;
-          cout << "xMedian: " << xMedian << endl;
-          cout << "xMedianIndex: " << xMedianIndex << endl;
-          cout << "low: " << low << endl;
-          cout << "high: " << high << endl;
-          cout << "leftCandidatesIndex: " << leftCandidatesIndex << endl;
-          cout << "rightCandidatesIndex: " << rightCandidatesIndex << endl;
-          for (int j = low; j <= high; j++) {
-            cout << Nodes[j].x << " ";
-          }
-          cout << endl;
-          for (int j = low; j <= high; j++) {
-            cout << Nodes[j].y << " ";
-          }
-          cout << endl;
-          assert(0);
-        }
-      }
-      for (int i = rightCandidatesIndex + 1; i <= high; i++) {
-        if ((double)Nodes[i].x <= (double)xMedian + d) {
-          cout << "2.d: " << d << endl;
-          cout << "xMedian: " << xMedian << endl;
-          cout << "xMedianIndex: " << xMedianIndex << endl;
-          cout << "low: " << low << endl;
-          cout << "high: " << high << endl;
-          cout << "leftCandidatesIndex: " << leftCandidatesIndex << endl;
-          cout << "rightCandidatesIndex: " << rightCandidatesIndex << endl;
-          for (int j = low; j <= high; j++) {
-            cout << Nodes[j].x << " ";
-          }
-          cout << endl;
-          for (int j = low; j <= high; j++) {
-            cout << Nodes[j].y << " ";
-          }
-          cout << endl;
-          assert(0);
-        }
-      }
-    */
+    do {
+        leftCandidatesIndex--;
+    } while (leftCandidatesIndex > low &&
+             Nodes[leftCandidatesIndex].x >= xMedian - d);
+    assert(leftCandidatesIndex >= low);
+
+    do {
+        rightCandidatesIndex++;
+    } while (rightCandidatesIndex < high &&
+             Nodes[rightCandidatesIndex].x <= xMedian + d);
+    assert(rightCandidatesIndex <= high);
+
     for (int i = leftCandidatesIndex; i <= xMedianIndex; i++) {
         for (int j = xMedianIndex + 1; j <= rightCandidatesIndex; j++) {
             double currentD = nodeDistance(Nodes[i], Nodes[j]);

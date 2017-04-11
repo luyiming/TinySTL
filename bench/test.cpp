@@ -130,13 +130,6 @@ void heapSort(int *A, int n) {
     }
 }
 
-void test(int n) {
-    for (int i = 0; i <= n; i++) {
-        cout << "*";
-    }
-    cout << endl;
-}
-
 void selectSort(int *A, int n) {
     for (int i = 0; i < n; i++) {
         int minIndex = i;
@@ -151,40 +144,42 @@ void selectSort(int *A, int n) {
 
 #define ARRAYSIZE 100000
 int main() {
-    Profiler profiler;
-    profiler.AlgorithmProfiler(test);
     int A[ARRAYSIZE];
 
+    cout << "selectSort:" << endl;
     for (int sz = 1000; sz < ARRAYSIZE; sz *= 5) {
         for (int i = 0; i < sz; i++) {
             A[i] = rand();
         }
-        profiler.start(sz);
+        Profiler::start();
         selectSort(A, sz);
-        profiler.stop();
+        Profiler::stop();
+        cout << "size: " << sz << "\t";
+        Profiler::dumpDuringTime(cout);
     }
-    profiler.dump();
 
-    Profiler profiler2;
+    cout << "heapSort:" << endl;
     for (int sz = 1000; sz < ARRAYSIZE; sz *= 5) {
         for (int i = 0; i < sz; i++) {
             A[i] = rand();
         }
-        profiler2.start(sz);
+        Profiler::start();
         heapSort(A, sz);
-        profiler2.stop();
+        Profiler::stop();
+        cout << "size: " << sz << "\t";
+        Profiler::dumpDuringTime(cout);
     }
-    profiler2.dump();
 
-    Profiler profiler3;
+    cout << "sort:" << endl;
     for (int sz = 1000; sz < ARRAYSIZE; sz *= 5) {
         for (int i = 0; i < sz; i++) {
             A[i] = rand();
         }
-        profiler3.start(sz);
+        Profiler::start();
         sort(A, A + sz);
-        profiler3.stop();
+        Profiler::stop();
+        cout << "size: " << sz << "\t";
+        Profiler::dumpDuringTime(cout);
     }
-    profiler3.dump();
     return 0;
 }
