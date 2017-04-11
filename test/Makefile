@@ -2,7 +2,7 @@
 GTEST_DIR = googletest/googletest
 
 # TinySTL test header files.
-TEST_HEADERS = ../*.hpp ../detail/*.hpp
+TEST_HEADERS = ../include/*.hpp ../include/detail/*.hpp ../include/algorithm/*.hpp
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
@@ -22,7 +22,7 @@ TESTALL = obj/testAll
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread -std=c++11 -I..
+CXXFLAGS += -g -Wall -Wextra -pthread -std=c++11 -I../include
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -58,7 +58,7 @@ obj/libgtest_main.a : obj/gtest-all.o obj/gtest_main.o
 $(ODIR)/%.o: %.cpp $(TEST_HEADERS) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-$(TESTS): $(TESTS_OBJ) obj/libgtest_main.a
+$(ODIR)/%: $(ODIR)/%.o obj/libgtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@ $< obj/libgtest_main.a
 
 $(TESTALL) : $(TESTS_OBJ) obj/libgtest_main.a

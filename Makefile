@@ -1,8 +1,11 @@
-.PHONY: test clean
+.PHONY: all test clean
 
-test :
-	@cd TinySTL/test; make test
+all:
+	@cd test; make all
 
-clean :
-	@cd TinySTL/test; make clean
-	rm -f TinySTL/*.gch TinySTL/test/*.gch TinySTL/detail/*.gch
+test:
+	@cd test; make test
+
+clean:
+	@cd test; make clean
+	rm -f include/*.gch include/detail/*.gch

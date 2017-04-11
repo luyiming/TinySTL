@@ -1,9 +1,9 @@
-// A divide and conquer program in C++ to find the smallest distance from a
-// given set of points.
-// O(nlogn)
+#ifndef CLOSEST_PAIR_OF_POINTS_HPP
+#define CLOSEST_PAIR_OF_POINTS_HPP
 
-#ifndef CLOSEDPAIROFPOINTS_CPP
-#define CLOSEDPAIROFPOINTS_CPP
+// A divide-and-conquer program to find the smallest distance from a
+// given set of points in the plane.
+// O(nlogn)
 
 #include <algorithm>
 #include <cassert>
@@ -17,29 +17,37 @@
 
 using namespace std;
 
-struct Node {
+struct Point {
     double x, y;
-    Node(int x, int y) : x(x), y(y) {}
-    Node() : x(0), y(0) {}
-    Node(const Node &rhs) {
-        x = rhs.x;
-        y = rhs.y;
-    }
+    Point() : x(0), y(0) {}
+    Point(int x, int y) : x(x), y(y) {}
+    Point(const Point &rhs) : x(rhs.x), y(rhs.y) {}
     void flip() { swap(x, y); }
 };
-bool operator<(const Node &lhs, const Node &rhs) { return lhs.x < rhs.x; }
 
-double nodeDistance(Node n1, Node n2) {
+bool operator<(const Point &lhs, const Point &rhs) { return lhs.x < rhs.x; }
+
+double nodeDistance(Point n1, Point n2) {
     return sqrt((n1.x - n2.x) * (n1.x - n2.x) + (n1.y - n2.y) * (n1.y - n2.y));
 }
 
-double findMinDistance(Node *Nodes, int low, int high) {
-    int nodesSize = high - low + 1;
-    if (nodesSize <= 1) {
-        return std::numeric_limits<double>::max();
+double bruteForceFindMinDistance(Point *Nodes, int low, int high) {
+    double minDistance = std::numeric_limits<double>::max();
+    for (int i = low; i <= high; i++) {
+        for (int j = i + 1; j <= high; j++) {
+            double d = nodeDistance(Nodes[i], Nodes[j]);
+            if (d < minDistance) {
+                minDistance = d;
+            }
+        }
     }
-    if (nodesSize == 2) {
-        return nodeDistance(Nodes[low], Nodes[high]);
+    return minDistance;
+}
+
+double findMinDistance(Point *Nodes, int low, int high) {
+    int nodesSize = high - low + 1;
+    if (nodesSize <= 4) {
+        return bruteForceFindMinDistance(Nodes, low, high);
     }
 
     sort(Nodes + low, Nodes + high + 1);
@@ -155,58 +163,4 @@ double findMinDistance(Node *Nodes, int low, int high) {
     return d;
 }
 
-double bruteForceMinDistance(Node *Nodes, int n) {
-    double minDistance = std::numeric_limits<double>::max();
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1; j < n; j++) {
-            double currentD = nodeDistance(Nodes[i], Nodes[j]);
-            if (currentD < minDistance) {
-                minDistance = currentD;
-            }
-        }
-    }
-    return minDistance;
-}
-
-int main() {
-    const int NodeSize = 1000;
-    const int TESTNUM = 100;
-    const double EPSILON = 1.0e-5;
-    Node *testNodes1 = new Node[NodeSize];
-    Node *testNodes2 = new Node[NodeSize];
-    for (int i = 0; i < TESTNUM; i++) {
-        for (int j = 0; j < NodeSize; j++) {
-            testNodes1[j] = Node(rand(), rand());
-            testNodes2[j] = testNodes1[j];
-        }
-        double d1 = bruteForceMinDistance(testNodes1, NodeSize);
-        double d2 = findMinDistance(testNodes2, 0, NodeSize - 1);
-        if (fabs(d1 - d2) > EPSILON) {
-            printf("should be %.6f, you solve %.6f\n", d1, d2);
-            for (int k = 0; k < NodeSize; k++) {
-                printf("%d,%d ", int(testNodes1[k].x), int(testNodes1[k].y));
-            }
-            printf("\n");
-            for (int k = 0; k < NodeSize; k++) {
-                printf("%d,%d ", int(testNodes2[k].x), int(testNodes2[k].y));
-            }
-            printf("\n");
-            printf("\n");
-            return 1;
-        }
-    }
-
-    testNodes1[0] = Node(1, 1);
-    testNodes1[1] = Node(1, 1);
-    assert(fabs(findMinDistance(testNodes1, 0, 1) - 0.0) < EPSILON);
-
-    testNodes1[0] = Node(0, 1);
-    testNodes1[1] = Node(0, 2);
-    testNodes1[2] = Node(0, 4);
-    assert(fabs(findMinDistance(testNodes1, 0, 2) - 1.0) < EPSILON);
-
-    printf("test succeed\n");
-    return 0;
-}
-
-#endif  // CLOSEDPAIROFPOINTS_CPP
+#endif  // CLOSEST_PAIR_OF_POINTS_HPP

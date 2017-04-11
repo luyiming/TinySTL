@@ -1,6 +1,6 @@
 #ifndef ALGORITHM_HPP
 #define ALGORITHM_HPP
 
-#include "algorithm/cloestPairOfPoints.cpp"
+#include "algorithm/closestPairOfPoints.hpp"
 
 #endif // ALGORITHM_HPP
