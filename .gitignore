@@ -32,5 +32,4 @@
 .clang-format
 .clang_complete
 
-# unit test exec file
-testMain
+obj
