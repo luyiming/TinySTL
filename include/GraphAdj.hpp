@@ -14,23 +14,25 @@ struct Edge {
     int dest;
     EdgeType weight;
     Edge<VertexType, EdgeType> *next;
-    Edge() : dest(-1), next(NULL) {}
-    Edge(int dest) : dest(dest), next(NULL) {}
-    Edge(int dest, int weight) : dest(dest), weight(weight), next(NULL) {}
+    Edge() : dest(-1), weight(EdgeType()), next(NULL) {}
+    Edge(int dest, int weight = EdgeType())
+        : dest(dest), weight(weight), next(NULL) {}
 };
 
 template <typename VertexType, typename EdgeType>
 struct Vertex {
     VertexType data;
     Edge<VertexType, EdgeType> *outEdge;
-    Vertex() : outEdge(NULL) {}
+    Vertex() : data(VertexType()), outEdge(NULL) {}
     Vertex(const VertexType &v) : data(v), outEdge(NULL) {}
 };
 
-template <typename VertexType, typename EdgeType>
+template <typename VertexType, typename EdgeType = int>
 class GraphAdj : public Graph<VertexType, EdgeType> {
    public:
     GraphAdj();
+    GraphAdj(const GraphAdj &rhs);
+    GraphAdj &operator=(const GraphAdj &rhs);
     virtual ~GraphAdj() override;
 
     virtual int getVertexPos(const VertexType &vertex) override;
@@ -38,7 +40,8 @@ class GraphAdj : public Graph<VertexType, EdgeType> {
     virtual EdgeType getWeight(int v1, int v2) override;
 
     virtual void insertVertex(const VertexType &vertex) override;
-    virtual void insertEdge(int v1, int v2, const EdgeType &weight) override;
+    virtual void insertEdge(int v1, int v2,
+                            const EdgeType &weight = EdgeType()) override;
     virtual void removeVertex(int v) override;
     virtual void removeEdge(int v1, int v2) override;
 
@@ -50,8 +53,11 @@ class GraphAdj : public Graph<VertexType, EdgeType> {
     size_t maxVertices;
     size_t numEdges;
     size_t numVertices;
+
    private:
     void overflowHandle();
+
+   public:
     void print();
 };
 
@@ -62,6 +68,42 @@ GraphAdj<V, E>::GraphAdj() {
     numVertices = 0;
     numEdges = 0;
 }
+
+template <typename V, typename E>
+inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) {
+    maxVertices = rhs.maxVertices;
+    adj = new Vertex<V, E>[maxVertices];
+    for (size_t i = 0; i < numVertices; i++) {
+        adj[i] = rhs.adj[i];
+        adj[i] = NULL;
+        Edge<V, E> *p = rhs.adj[i].outEdge;
+        while (p != NULL) {
+            Edge<V, E> *q = new Edge<V, E>(*p);
+            q->next = adj[i].outEdge;
+            adj[i].outEdge = q;
+        }
+    }
+}
+
+template <typename V, typename E>
+inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
+    if (this != &rhs) {
+        maxVertices = rhs.maxVertices;
+        adj = new Vertex<V, E>[maxVertices];
+        for (size_t i = 0; i < numVertices; i++) {
+            adj[i] = rhs.adj[i];
+            adj[i] = NULL;
+            Edge<V, E> *p = rhs.adj[i].outEdge;
+            while (p != NULL) {
+                Edge<V, E> *q = new Edge<V, E>(*p);
+                q->next = adj[i].outEdge;
+                adj[i].outEdge = q;
+            }
+        }
+    }
+    return *this;
+}
+
 template <typename V, typename E>
 GraphAdj<V, E>::~GraphAdj() {
     if (adj != NULL) {
@@ -98,6 +140,7 @@ E GraphAdj<V, E>::getWeight(int v1, int v2) {
         p = p->next;
     }
     assert(0);  // TODO: edge <v1, v2> not found
+    return E();
 }
 
 template <typename V, typename E>
@@ -137,7 +180,7 @@ void GraphAdj<V, E>::removeEdge(int v1, int v2) {
 
 template <typename V, typename E>
 int GraphAdj<V, E>::getFirstNeighbour(int v) {
-    assert(0 <= v && v < numVertices);
+    assert(0 <= v && v < (int)numVertices);
     if (adj[v].outEdge == NULL) {
         return -1;
     } else {
@@ -156,7 +199,7 @@ int GraphAdj<V, E>::getNextNeighbour(int v1, int v2) {
         }
         p = p->next;
     }
-    if (p->next == NULL) {
+    if (p == NULL || p->next == NULL) {
         return -1;
     } else {
         return p->next->dest;
@@ -176,15 +219,15 @@ void GraphAdj<V, E>::overflowHandle() {
         for (size_t i = 0; i < numVertices; i++) {
             adj[i] = old[i];
         }
-        numVertices = maxVertices;
         delete[] old;
     }
 }
 
 template <typename V, typename E>
 void GraphAdj<V, E>::print() {
-    printf("size %d\n", numVertices);
-    printf("size %d\n", maxVertices);
+    printf("numVertices %d\n", numVertices);
+    printf("numEdges    %d\n", numEdges);
+    printf("maxVertices %d\n", maxVertices);
     for (size_t i = 0; i < numVertices; i++) {
         printf("%d: ", i);
         Edge<V, E> *p = adj[i].outEdge;
