@@ -71,6 +71,7 @@ GraphAdj<V, E>::GraphAdj() {
 
 template <typename V, typename E>
 inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) {
+    Graph<V, E>::Graph(rhs);
     maxVertices = rhs.maxVertices;
     adj = new Vertex<V, E>[maxVertices];
     for (size_t i = 0; i < numVertices; i++) {
@@ -87,6 +88,7 @@ inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) {
 
 template <typename V, typename E>
 inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
+    Graph<V, E>::operator=(rhs);
     if (this != &rhs) {
         maxVertices = rhs.maxVertices;
         adj = new Vertex<V, E>[maxVertices];
