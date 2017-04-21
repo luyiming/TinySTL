@@ -15,7 +15,7 @@ struct Edge {
     EdgeType weight;
     Edge<VertexType, EdgeType> *next;
     Edge() : dest(-1), weight(EdgeType()), next(NULL) {}
-    Edge(int dest, int weight = EdgeType())
+    explicit Edge(int dest, EdgeType weight = EdgeType())
         : dest(dest), weight(weight), next(NULL) {}
 };
 
@@ -24,7 +24,7 @@ struct Vertex {
     VertexType data;
     Edge<VertexType, EdgeType> *outEdge;
     Vertex() : data(VertexType()), outEdge(NULL) {}
-    Vertex(const VertexType &v) : data(v), outEdge(NULL) {}
+    explicit Vertex(const VertexType &v) : data(v), outEdge(NULL) {}
 };
 
 template <typename VertexType, typename EdgeType = int>
@@ -48,11 +48,9 @@ class GraphAdj : public Graph<VertexType, EdgeType> {
     virtual int getFirstNeighbour(int v) override;
     virtual int getNextNeighbour(int v1, int v2) override;
 
-   private:
+   protected:
     Vertex<VertexType, EdgeType> *adj;
     size_t maxVertices;
-    size_t numEdges;
-    size_t numVertices;
 
    private:
     void overflowHandle();
@@ -65,41 +63,69 @@ template <typename V, typename E>
 GraphAdj<V, E>::GraphAdj() {
     adj = NULL;
     maxVertices = 0;
-    numVertices = 0;
     numEdges = 0;
+    numVertices = 0;
 }
 
 template <typename V, typename E>
 inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) {
-    Graph<V, E>::Graph(rhs);
+    numVertices = rhs.numVertices;
+    numEdges = rhs.numEdges;
     maxVertices = rhs.maxVertices;
-    adj = new Vertex<V, E>[maxVertices];
-    for (size_t i = 0; i < numVertices; i++) {
-        adj[i] = rhs.adj[i];
-        adj[i] = NULL;
-        Edge<V, E> *p = rhs.adj[i].outEdge;
-        while (p != NULL) {
-            Edge<V, E> *q = new Edge<V, E>(*p);
-            q->next = adj[i].outEdge;
-            adj[i].outEdge = q;
+    if (rhs.adj == NULL) {
+        adj = NULL;
+        assert(maxVertices == 0);
+    } else {
+        adj = new Vertex<V, E>[maxVertices];
+        for (size_t i = 0; i < numVertices; i++) {
+            adj[i].data = rhs.adj[i].data;
+            adj[i].outEdge = NULL;
+            Edge<V, E> *tail = NULL;
+            Edge<V, E> *p = rhs.adj[i].outEdge;
+            while (p != NULL) {
+                Edge<V, E> *q = new Edge<V, E>(p->dest, p->weight);
+                assert(q->next == NULL);
+                if (adj[i].outEdge == NULL) {
+                    tail = q;
+                    adj[i].outEdge = q;
+                } else {
+                    tail->next = q;
+                    tail = q;
+                }
+                p = p->next;
+            }
         }
     }
 }
 
 template <typename V, typename E>
 inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
-    Graph<V, E>::operator=(rhs);
     if (this != &rhs) {
+        numVertices = rhs.numVertices;
+        numEdges = rhs.numEdges;
         maxVertices = rhs.maxVertices;
-        adj = new Vertex<V, E>[maxVertices];
-        for (size_t i = 0; i < numVertices; i++) {
-            adj[i] = rhs.adj[i];
-            adj[i] = NULL;
-            Edge<V, E> *p = rhs.adj[i].outEdge;
-            while (p != NULL) {
-                Edge<V, E> *q = new Edge<V, E>(*p);
-                q->next = adj[i].outEdge;
-                adj[i].outEdge = q;
+        if (rhs.adj == NULL) {
+            adj = NULL;
+            assert(maxVertices == 0);
+        } else {
+            adj = new Vertex<V, E>[maxVertices];
+            for (size_t i = 0; i < numVertices; i++) {
+                adj[i].data = rhs.adj[i].data;
+                adj[i].outEdge = NULL;
+                Edge<V, E> *tail = NULL;
+                Edge<V, E> *p = rhs.adj[i].outEdge;
+                while (p != NULL) {
+                    Edge<V, E> *q = new Edge<V, E>(p->dest, p->weight);
+                    assert(q->next == NULL);
+                    if (adj[i].outEdge == NULL) {
+                        tail = q;
+                        adj[i].outEdge = q;
+                    } else {
+                        tail->next = q;
+                        tail = q;
+                    }
+                    p = p->next;
+                }
             }
         }
     }
@@ -109,6 +135,15 @@ inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
 template <typename V, typename E>
 GraphAdj<V, E>::~GraphAdj() {
     if (adj != NULL) {
+        for (size_t i = 0; i < numVertices; i++) {
+            Edge<V, E> *p = NULL;
+            Edge<V, E> *q = adj[i].outEdge;
+            while (q != NULL) {
+                p = q;
+                q = q->next;
+                delete p;
+            }
+        }
         delete[] adj;
     }
 }
