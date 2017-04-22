@@ -1,3 +1,5 @@
+
+#include "gtest/gtest.h"
 #include "GraphAdj.hpp"
 
 #include <iostream>
@@ -28,22 +30,21 @@ void DFS(Graph<T,E> &graph) {
 	delete[] color;
 }
 
-int main() {
+TEST(GraphTest, test1) {
     GraphAdj<int> g;
     g.insertVertex(0);
     g.insertVertex(1);
     g.insertVertex(2);
     g.insertVertex(3);
     g.insertVertex(4);
-    g.insertVertex(5);
 
     g.insertEdge(0, 1);
     g.insertEdge(1, 2);
     g.insertEdge(2, 3);
     g.insertEdge(2, 4);
-    g.insertEdge(1, 5);
     g.print();
 
+	GraphAdj<int> g1(g);
+	g1.print();
     DFS(g);
-    return 0;
 }

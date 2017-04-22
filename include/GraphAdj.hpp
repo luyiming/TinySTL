@@ -8,6 +8,9 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+
+using namespace std;
 
 template <typename VertexType, typename EdgeType>
 struct Edge {
@@ -15,7 +18,7 @@ struct Edge {
     EdgeType weight;
     Edge<VertexType, EdgeType> *next;
     Edge() : dest(-1), weight(EdgeType()), next(NULL) {}
-    Edge(int dest, int weight = EdgeType())
+    explicit Edge(int dest, int weight = EdgeType())
         : dest(dest), weight(weight), next(NULL) {}
 };
 
@@ -24,7 +27,7 @@ struct Vertex {
     VertexType data;
     Edge<VertexType, EdgeType> *outEdge;
     Vertex() : data(VertexType()), outEdge(NULL) {}
-    Vertex(const VertexType &v) : data(v), outEdge(NULL) {}
+    explicit Vertex(const VertexType &v) : data(v), outEdge(NULL) {}
 };
 
 template <typename VertexType, typename EdgeType = int>
@@ -71,35 +74,41 @@ GraphAdj<V, E>::GraphAdj() {
 
 template <typename V, typename E>
 inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) {
-    Graph<V, E>::Graph(rhs);
+    // Graph<V, E>::Graph(rhs);
     maxVertices = rhs.maxVertices;
+    numVertices = rhs.numVertices;
+    numEdges = rhs.numEdges;
     adj = new Vertex<V, E>[maxVertices];
     for (size_t i = 0; i < numVertices; i++) {
         adj[i] = rhs.adj[i];
-        adj[i] = NULL;
+        adj[i].outEdge = NULL;
         Edge<V, E> *p = rhs.adj[i].outEdge;
         while (p != NULL) {
             Edge<V, E> *q = new Edge<V, E>(*p);
             q->next = adj[i].outEdge;
             adj[i].outEdge = q;
+            p = p->next;
         }
     }
 }
 
 template <typename V, typename E>
 inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
-    Graph<V, E>::operator=(rhs);
+    // Graph<V, E>::operator=(rhs);
     if (this != &rhs) {
+        numVertices = rhs.numVertices;
+        numEdges = rhs.numEdges;
         maxVertices = rhs.maxVertices;
         adj = new Vertex<V, E>[maxVertices];
         for (size_t i = 0; i < numVertices; i++) {
             adj[i] = rhs.adj[i];
-            adj[i] = NULL;
+            adj[i].outEdge = NULL;
             Edge<V, E> *p = rhs.adj[i].outEdge;
             while (p != NULL) {
                 Edge<V, E> *q = new Edge<V, E>(*p);
                 q->next = adj[i].outEdge;
                 adj[i].outEdge = q;
+                p = p->next;
             }
         }
     }
@@ -227,11 +236,15 @@ void GraphAdj<V, E>::overflowHandle() {
 
 template <typename V, typename E>
 void GraphAdj<V, E>::print() {
-    printf("numVertices %d\n", numVertices);
-    printf("numEdges    %d\n", numEdges);
-    printf("maxVertices %d\n", maxVertices);
+    printf("numVertices ");
+    cout << numVertices << endl;
+    printf("numEdges    ");
+    cout << numEdges << endl;
+    printf("maxVertices ");
+    cout << maxVertices << endl;
     for (size_t i = 0; i < numVertices; i++) {
-        printf("%d: ", i);
+        cout << i;
+        printf("(%d): ", adj[i].data);
         Edge<V, E> *p = adj[i].outEdge;
         while (p != NULL) {
             printf("%d ", p->dest);
@@ -242,25 +255,6 @@ void GraphAdj<V, E>::print() {
 }
 
 /*
-void Graph::DFS() {
-    int *color = new int[numVertices];
-    for (int i = 0; i < numVertices; i++) {
-        color[i] = 0;
-    }
-    DFS_aux(0, color);
-    delete[] color;
-}
-void Graph::DFS_aux(int vertex, int *color) {
-    if (color[vertex] == 0) {
-        printf("%d\n", vertex);
-        color[vertex] = 1;
-        Edge *p = adj[vertex].edge;
-        while (p != NULL) {
-            DFS_aux(p->dst, color);
-            p = p->next;
-        }
-    }
-}
 struct Node {
     int vertex;
     Edge *next;
