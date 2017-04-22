@@ -4,8 +4,8 @@
 #include "GraphAdj.hpp"
 #include "gtest/gtest.h"
 
-#include <iostream>
 #include <cstdio>
+#include <iostream>
 
 using namespace std;
 
@@ -73,7 +73,7 @@ TEST(GraphAdjTest, Constructor) {
     delete g1;
 }
 
-TEST(GraphAdjTest, InsertAndRemove) {
+TEST(GraphAdjTest, Insert) {
     GraphAdj<int, double> g;
     for (size_t i = 1; i <= 100; i++) {
         g.insertVertex(i);
@@ -81,14 +81,52 @@ TEST(GraphAdjTest, InsertAndRemove) {
     }
     size_t cnt = 0;
     for (size_t i = 0; i < 100; i++) {
-        for (int j = i + 1; j < 100; j++) {
+        for (size_t j = i + 1; j < 100; j++) {
             g.insertEdge(i, j);
-            EXPECT_EQ(g.numOfEdges(), ++cnt);
+            EXPECT_EQ(g.check_true_edges(), ++cnt);
         }
     }
     GraphAdj<int, double> g2(g);
     EXPECT_EQ(g2.numOfVertices(), 100);
-    EXPECT_EQ(g2.numOfEdges(), cnt);
+    EXPECT_EQ(g2.check_true_edges(), cnt);
 }
 
+TEST(GraphAdjTest, Remove) {
+    GraphAdj<int, double> *g1 = new GraphAdj<int, double>();
+
+    g1->insertVertex(0);
+    g1->insertVertex(1);
+    g1->insertVertex(2);
+    g1->insertVertex(3);
+    g1->insertVertex(4);
+    g1->insertEdge(0, 1);
+    g1->insertEdge(0, 2);
+    g1->insertEdge(0, 3);
+    g1->insertEdge(0, 4);
+    g1->insertEdge(2, 0);
+    g1->insertEdge(2, 3);
+    g1->insertEdge(2, 4);
+
+    g1->removeEdge(0, 4);
+    EXPECT_EQ(g1->numOfVertices(), 5);
+    EXPECT_EQ(g1->check_true_edges(), 6);
+
+    g1->removeEdge(0, 1);
+    EXPECT_EQ(g1->numOfVertices(), 5);
+    EXPECT_EQ(g1->check_true_edges(), 5);
+
+    g1->removeVertex(0);
+    EXPECT_EQ(g1->numOfVertices(), 4);
+    EXPECT_EQ(g1->check_true_edges(), 2);
+
+    g1->removeVertex(0);
+    g1->removeVertex(0);
+    g1->removeVertex(0);
+    g1->removeVertex(0);
+    EXPECT_EQ(g1->numOfVertices(), 0);
+    EXPECT_EQ(g1->check_true_edges(), 0);
+    EXPECT_TRUE(g1->isEmpty());
+
+    delete g1;
+}
 #endif  // GRAPHADJ_TEST_CPP
