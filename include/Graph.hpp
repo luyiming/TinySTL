@@ -7,6 +7,10 @@ template <typename VertexType, typename EdgeType>
 class Graph {
    public:
     Graph() : numEdges(0), numVertices(0) {}
+    Graph(const Graph& rhs) {
+        numEdges = rhs.numEdges;
+        numVertices = rhs.numVertices;
+    }
     virtual ~Graph() { return; }
 
     virtual int getVertexPos(const VertexType &vertex) = 0;

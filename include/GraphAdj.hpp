@@ -18,7 +18,7 @@ struct Edge {
     EdgeType weight;
     Edge<VertexType, EdgeType> *next;
     Edge() : dest(-1), weight(EdgeType()), next(NULL) {}
-    explicit Edge(int dest, int weight = EdgeType())
+    explicit Edge(int dest, EdgeType weight = EdgeType())
         : dest(dest), weight(weight), next(NULL) {}
 };
 
@@ -51,11 +51,9 @@ class GraphAdj : public Graph<VertexType, EdgeType> {
     virtual int getFirstNeighbour(int v) override;
     virtual int getNextNeighbour(int v1, int v2) override;
 
-   private:
+   protected:
     Vertex<VertexType, EdgeType> *adj;
     size_t maxVertices;
-    size_t numEdges;
-    size_t numVertices;
 
    private:
     void overflowHandle();
@@ -65,50 +63,66 @@ class GraphAdj : public Graph<VertexType, EdgeType> {
 };
 
 template <typename V, typename E>
-GraphAdj<V, E>::GraphAdj() {
+GraphAdj<V, E>::GraphAdj() : Graph<V, E>::Graph() {
     adj = NULL;
     maxVertices = 0;
-    numVertices = 0;
-    numEdges = 0;
 }
 
 template <typename V, typename E>
-inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) {
-    // Graph<V, E>::Graph(rhs);
+inline GraphAdj<V, E>::GraphAdj(const GraphAdj &rhs) : Graph<V, E>::Graph(rhs) {
     maxVertices = rhs.maxVertices;
-    numVertices = rhs.numVertices;
-    numEdges = rhs.numEdges;
-    adj = new Vertex<V, E>[maxVertices];
-    for (size_t i = 0; i < numVertices; i++) {
-        adj[i] = rhs.adj[i];
-        adj[i].outEdge = NULL;
-        Edge<V, E> *p = rhs.adj[i].outEdge;
-        while (p != NULL) {
-            Edge<V, E> *q = new Edge<V, E>(*p);
-            q->next = adj[i].outEdge;
-            adj[i].outEdge = q;
-            p = p->next;
+    if (rhs.adj == NULL) {
+        adj = NULL;
+        // assert(maxVertices == 0);
+    } else {
+        adj = new Vertex<V, E>[maxVertices];
+        for (size_t i = 0; i < Graph<V, E>::numVertices; i++) {
+            adj[i].data = rhs.adj[i].data;
+            adj[i].outEdge = NULL;
+            Edge<V, E> *tail = NULL;
+            Edge<V, E> *p = rhs.adj[i].outEdge;
+            while (p != NULL) {
+                Edge<V, E> *q = new Edge<V, E>(p->dest, p->weight);
+                // assert(q->next == NULL);
+                if (adj[i].outEdge == NULL) {
+                    tail = q;
+                    adj[i].outEdge = q;
+                } else {
+                    tail->next = q;
+                    tail = q;
+                }
+                p = p->next;
+            }
         }
     }
 }
 
 template <typename V, typename E>
 inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
-    // Graph<V, E>::operator=(rhs);
     if (this != &rhs) {
-        numVertices = rhs.numVertices;
-        numEdges = rhs.numEdges;
         maxVertices = rhs.maxVertices;
-        adj = new Vertex<V, E>[maxVertices];
-        for (size_t i = 0; i < numVertices; i++) {
-            adj[i] = rhs.adj[i];
-            adj[i].outEdge = NULL;
-            Edge<V, E> *p = rhs.adj[i].outEdge;
-            while (p != NULL) {
-                Edge<V, E> *q = new Edge<V, E>(*p);
-                q->next = adj[i].outEdge;
-                adj[i].outEdge = q;
-                p = p->next;
+        if (rhs.adj == NULL) {
+            adj = NULL;
+            // assert(maxVertices == 0);
+        } else {
+            adj = new Vertex<V, E>[maxVertices];
+            for (size_t i = 0; i < Graph<V, E>::numVertices; i++) {
+                adj[i].data = rhs.adj[i].data;
+                adj[i].outEdge = NULL;
+                Edge<V, E> *tail = NULL;
+                Edge<V, E> *p = rhs.adj[i].outEdge;
+                while (p != NULL) {
+                    Edge<V, E> *q = new Edge<V, E>(p->dest, p->weight);
+                    // assert(q->next == NULL);
+                    if (adj[i].outEdge == NULL) {
+                        tail = q;
+                        adj[i].outEdge = q;
+                    } else {
+                        tail->next = q;
+                        tail = q;
+                    }
+                    p = p->next;
+                }
             }
         }
     }
@@ -118,14 +132,23 @@ inline GraphAdj<V, E> &GraphAdj<V, E>::operator=(const GraphAdj &rhs) {
 template <typename V, typename E>
 GraphAdj<V, E>::~GraphAdj() {
     if (adj != NULL) {
+        for (size_t i = 0; i < Graph<V, E>::numVertices; i++) {
+            Edge<V, E> *p = NULL;
+            Edge<V, E> *q = adj[i].outEdge;
+            while (q != NULL) {
+                p = q;
+                q = q->next;
+                delete p;
+            }
+        }
         delete[] adj;
     }
 }
 
 template <typename V, typename E>
 int GraphAdj<V, E>::getVertexPos(const V &vertex) {
-    assert(adj != NULL);
-    for (size_t i = 0; i < numVertices; i++) {
+    // assert(adj != NULL);
+    for (size_t i = 0; i < Graph<V, E>::numVertices; i++) {
         if (adj[i].data == vertex) {
             return i;
         }
@@ -135,14 +158,14 @@ int GraphAdj<V, E>::getVertexPos(const V &vertex) {
 
 template <typename V, typename E>
 V GraphAdj<V, E>::getValue(int v) {
-    assert(0 <= v && v < (int)numVertices);
+    // assert(0 <= v && v < Graph<V, E>::numVertices);
     return adj[v].data;
 }
 
 template <typename V, typename E>
 E GraphAdj<V, E>::getWeight(int v1, int v2) {
-    assert(0 <= v1 && v1 < (int)numVertices);
-    assert(0 <= v2 && v2 < (int)numVertices);
+    // assert(0 <= v1 && v1 < Graph<V, E>::numVertices);
+    // assert(0 <= v2 && v2 < Graph<V, E>::numVertices);
     Edge<V, E> *p = adj[v1].outEdge;
     while (p != NULL) {
         if (p->dest == v2) {
@@ -150,48 +173,51 @@ E GraphAdj<V, E>::getWeight(int v1, int v2) {
         }
         p = p->next;
     }
-    assert(0);  // TODO: edge <v1, v2> not found
+    // assert(0);  // TODO: edge <v1, v2> not found
     return E();
 }
 
 template <typename V, typename E>
 void GraphAdj<V, E>::insertVertex(const V &vertex) {
-    if (numVertices == maxVertices) {
+    if (Graph<V, E>::numVertices == maxVertices) {
         overflowHandle();
     }
-    adj[numVertices] = Vertex<V, E>(vertex);
-    numVertices++;
+    adj[Graph<V, E>::numVertices] = Vertex<V, E>(vertex);
+    Graph<V, E>::numVertices++;
     return;
 }
 
 template <typename V, typename E>
 void GraphAdj<V, E>::insertEdge(int v1, int v2, const E &weight) {
-    assert(0 <= v1 && v1 < (int)numVertices);
-    assert(0 <= v2 && v2 < (int)numVertices);
+    // assert(0 <= v1 && v1 < (int)numVertices);
+    // assert(0 <= v2 && v2 < (int)numVertices);
     Edge<V, E> *p = new Edge<V, E>(v2, weight);
     p->next = adj[v1].outEdge;
     adj[v1].outEdge = p;
-    numEdges++;
+    Graph<V, E>::numEdges++;
     return;
 }
 
 template <typename V, typename E>
 void GraphAdj<V, E>::removeVertex(int v) {
     // TODO
-    assert(0);
+    // assert(0);
+    v++;
     return;
 }
 
 template <typename V, typename E>
 void GraphAdj<V, E>::removeEdge(int v1, int v2) {
     // TODO
-    assert(0);
+    // assert(0);
+    v1++;
+    v2++;
     return;
 }
 
 template <typename V, typename E>
 int GraphAdj<V, E>::getFirstNeighbour(int v) {
-    assert(0 <= v && v < (int)numVertices);
+    // assert(0 <= v && v < (int)numVertices);
     if (adj[v].outEdge == NULL) {
         return -1;
     } else {
@@ -201,8 +227,8 @@ int GraphAdj<V, E>::getFirstNeighbour(int v) {
 
 template <typename V, typename E>
 int GraphAdj<V, E>::getNextNeighbour(int v1, int v2) {
-    assert(0 <= v1 && v1 < (int)numVertices);
-    assert(0 <= v2 && v2 < (int)numVertices);
+    // assert(0 <= v1 && v1 < (int)numVertices);
+    // assert(0 <= v2 && v2 < (int)numVertices);
     Edge<V, E> *p = adj[v1].outEdge;
     while (p != NULL) {
         if (p->dest == v2) {
@@ -219,7 +245,7 @@ int GraphAdj<V, E>::getNextNeighbour(int v1, int v2) {
 
 template <typename V, typename E>
 void GraphAdj<V, E>::overflowHandle() {
-    assert(numVertices == maxVertices);
+    // assert(numVertices == maxVertices);
     if (adj == NULL) {
         adj = new Vertex<V, E>[1];
         maxVertices = 1;
@@ -227,7 +253,7 @@ void GraphAdj<V, E>::overflowHandle() {
         Vertex<V, E> *old = adj;
         maxVertices *= 2;
         adj = new Vertex<V, E>[maxVertices];
-        for (size_t i = 0; i < numVertices; i++) {
+        for (size_t i = 0; i < Graph<V, E>::numVertices; i++) {
             adj[i] = old[i];
         }
         delete[] old;
@@ -237,12 +263,12 @@ void GraphAdj<V, E>::overflowHandle() {
 template <typename V, typename E>
 void GraphAdj<V, E>::print() {
     printf("numVertices ");
-    cout << numVertices << endl;
+    cout << Graph<V, E>::numVertices << endl;
     printf("numEdges    ");
-    cout << numEdges << endl;
+    cout << Graph<V, E>::numEdges << endl;
     printf("maxVertices ");
     cout << maxVertices << endl;
-    for (size_t i = 0; i < numVertices; i++) {
+    for (size_t i = 0; i < Graph<V, E>::numVertices; i++) {
         cout << i;
         printf("(%d): ", adj[i].data);
         Edge<V, E> *p = adj[i].outEdge;

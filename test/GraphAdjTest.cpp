@@ -1,36 +1,39 @@
+#ifndef GRAPHADJ_TEST_CPP
+#define GRAPHADJ_TEST_CPP
 
-#include "gtest/gtest.h"
 #include "GraphAdj.hpp"
+#include "gtest/gtest.h"
 
 #include <iostream>
+#include <cstdio>
 
 using namespace std;
 
-template<typename T, typename E>
+template <typename T, typename E>
 void DFS_aux(Graph<T, E> &graph, int vertex, int *color) {
-	if (color[vertex] == 0) {
-		printf("%d\n", graph.getValue(vertex));
-		color[vertex] = 1;
-		int v = graph.getFirstNeighbour(vertex);
-		while (v != -1) {
-			DFS_aux(graph, v, color);
-			v = graph.getNextNeighbour(vertex, v);
-		}
-	}
+    if (color[vertex] == 0) {
+        printf("%d\n", graph.getValue(vertex));
+        color[vertex] = 1;
+        int v = graph.getFirstNeighbour(vertex);
+        while (v != -1) {
+            DFS_aux(graph, v, color);
+            v = graph.getNextNeighbour(vertex, v);
+        }
+    }
 }
 
-template<typename T, typename E>
-void DFS(Graph<T,E> &graph) {
-	int numVertices = graph.numOfVertices();
-	int *color = new int[numVertices];
-	for (int i = 0; i < numVertices; i++) {
-		color[i] = 0;
-	}
-	DFS_aux(graph, 0, color);
-	delete[] color;
+template <typename T, typename E>
+void DFS(Graph<T, E> &graph) {
+    int numVertices = graph.numOfVertices();
+    int *color = new int[numVertices];
+    for (int i = 0; i < numVertices; i++) {
+        color[i] = 0;
+    }
+    DFS_aux(graph, 0, color);
+    delete[] color;
 }
 
-TEST(GraphTest, test1) {
+TEST(GraphAdjTest, DFS) {
     GraphAdj<int> g;
     g.insertVertex(0);
     g.insertVertex(1);
@@ -42,9 +45,50 @@ TEST(GraphTest, test1) {
     g.insertEdge(1, 2);
     g.insertEdge(2, 3);
     g.insertEdge(2, 4);
-    g.print();
 
-	GraphAdj<int> g1(g);
-	g1.print();
-    DFS(g);
+    // DFS(g);
 }
+
+TEST(GraphAdjTest, Constructor) {
+    GraphAdj<int, double> *g1 = new GraphAdj<int, double>();
+    EXPECT_TRUE(g1->isEmpty());
+    EXPECT_EQ(g1->numOfEdges(), 0);
+    EXPECT_EQ(g1->numOfVertices(), 0);
+
+    g1->insertVertex(0);
+    g1->insertVertex(1);
+    g1->insertVertex(2);
+    g1->insertVertex(3);
+    g1->insertVertex(4);
+    g1->insertEdge(0, 1);
+    g1->insertEdge(0, 2);
+    g1->insertEdge(2, 3);
+    g1->insertEdge(2, 4);
+    GraphAdj<int, double> *g2 = new GraphAdj<int, double>(*g1);
+    GraphAdj<int, double> g3;
+    g3 = *g2;
+    GraphAdj<int, double> g4(g3);
+
+    delete g2;
+    delete g1;
+}
+
+TEST(GraphAdjTest, InsertAndRemove) {
+    GraphAdj<int, double> g;
+    for (size_t i = 1; i <= 100; i++) {
+        g.insertVertex(i);
+        EXPECT_EQ(g.numOfVertices(), i);
+    }
+    size_t cnt = 0;
+    for (size_t i = 0; i < 100; i++) {
+        for (int j = i + 1; j < 100; j++) {
+            g.insertEdge(i, j);
+            EXPECT_EQ(g.numOfEdges(), ++cnt);
+        }
+    }
+    GraphAdj<int, double> g2(g);
+    EXPECT_EQ(g2.numOfVertices(), 100);
+    EXPECT_EQ(g2.numOfEdges(), cnt);
+}
+
+#endif  // GRAPHADJ_TEST_CPP
