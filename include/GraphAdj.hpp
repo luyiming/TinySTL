@@ -12,6 +12,8 @@
 
 using namespace std;
 
+namespace TinySTL {
+
 template <typename VertexType, typename EdgeType>
 struct Edge {
     int dest;
@@ -41,14 +43,19 @@ class GraphAdj : public Graph<VertexType, EdgeType> {
     virtual int getVertexPos(const VertexType &vertex) override;
     virtual VertexType getValue(int v) override;
     virtual EdgeType getWeight(int v1, int v2) override;
+    size_t getOutDegree(int v) const;
+    size_t getInDegree(int v) const;
 
     virtual void insertVertex(const VertexType &vertex) override;
-    virtual void insertEdge(int v1, int v2, const EdgeType &weight = EdgeType()) override;
+    virtual void insertEdge(int v1, int v2,
+                            const EdgeType &weight = EdgeType()) override;
     virtual void removeVertex(int v) override;
     virtual void removeEdge(int v1, int v2) override;
 
     virtual int getFirstNeighbour(int v) override;
     virtual int getNextNeighbour(int v1, int v2) override;
+
+    void reverse();
 
    protected:
     Vertex<VertexType, EdgeType> *adj;
@@ -181,6 +188,35 @@ E GraphAdj<V, E>::getWeight(int v1, int v2) {
 }
 
 template <typename V, typename E>
+size_t GraphAdj<V, E>::getOutDegree(int v) const {
+    assert(0 <= v && v < (int)numVertices);
+    int outdegree = 0;
+    Edge<V, E> *p = adj[v].outEdge;
+    while (p != nullptr) {
+        outdegree++;
+        p = p->next;
+    }
+    return outdegree;
+}
+
+template <typename V, typename E>
+size_t GraphAdj<V, E>::getInDegree(int v) const {
+    // O(V + E) rather slow
+    assert(0 <= v && v < (int)numVertices);
+    int indegree = 0;
+    for (size_t i = 0; i < this->numVertices; i++) {
+        Edge<V, E> *p = adj[i].outEdge;
+        while (p != nullptr) {
+            if (p->dest == v) {
+                indegree++;
+            }
+            p = p->next;
+        }
+    }
+    return indegree;
+}
+
+template <typename V, typename E>
 void GraphAdj<V, E>::insertVertex(const V &vertex) {
     if (numVertices == maxVertices) {
         overflowHandle();
@@ -216,6 +252,7 @@ void GraphAdj<V, E>::removeVertex(int v) {
         delete p;
     }
     adj[v] = adj[numVertices - 1];
+    assert(adj[v].outEdge == adj[numVertices - 1].outEdge);
     numVertices--;
 
     // remove edges concerning vertex v
@@ -303,6 +340,38 @@ int GraphAdj<V, E>::getNextNeighbour(int v1, int v2) {
 }
 
 template <typename V, typename E>
+void GraphAdj<V, E>::reverse() {
+    // O(V + E)
+    if (adj != nullptr) {
+        Vertex<V, E> *newAdj = new Vertex<V, E>[this->maxVertices];
+        // reverse each edge <i, p->dest> to <p->dest, i>
+        // and insert to the head of newAdj[p->dest]
+        for (size_t i = 0; i < this->numVertices; i++) {
+            Edge<V, E> *p = adj[i].outEdge;
+            while (p != nullptr) {
+                Edge<V, E> *q = new Edge<V, E>(i, p->weight);
+                q->next = newAdj[p->dest].outEdge;
+                newAdj[p->dest].outEdge = q;
+                p = p->next;
+            }
+        }
+        // delete old adj
+        for (size_t i = 0; i < this->numVertices; i++) {
+            Edge<V, E> *p = nullptr;
+            Edge<V, E> *q = adj[i].outEdge;
+            while (q != nullptr) {
+                p = q;
+                q = q->next;
+                delete p;
+            }
+        }
+        delete[] adj;
+
+        adj = newAdj;
+    }
+}
+
+template <typename V, typename E>
 void GraphAdj<V, E>::overflowHandle() {
     assert(numVertices == maxVertices);
     if (adj == nullptr) {
@@ -384,4 +453,7 @@ void Graph::DFS_stack() {
     delete[] color;
 }
 */
+
+}  // namespace TinySTL
+
 #endif  // GRAPH_ADJ_HPP

@@ -8,6 +8,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace TinySTL;
 
 template <typename T, typename E>
 void DFS_aux(Graph<T, E> &graph, int vertex, int *color) {
@@ -128,5 +129,85 @@ TEST(GraphAdjTest, Remove) {
     EXPECT_TRUE(g1->isEmpty());
 
     delete g1;
+}
+
+TEST(GraphAdjTest, Neighbour) {
+    GraphAdj<int, double> g;
+    g.insertVertex(0);
+    g.insertVertex(1);
+    g.insertVertex(2);
+    g.insertEdge(0, 1);
+    g.insertEdge(0, 2);
+
+    EXPECT_EQ(g.getFirstNeighbour(1), -1);
+    EXPECT_EQ(g.getFirstNeighbour(2), -1);
+
+    int v = g.getFirstNeighbour(0);
+    if (v == 1) {
+        EXPECT_EQ(g.getNextNeighbour(0, v), 2);
+        EXPECT_EQ(g.getNextNeighbour(0, 2), -1);
+    } else if (v == 2) {
+        EXPECT_EQ(g.getNextNeighbour(0, v), 1);
+        EXPECT_EQ(g.getNextNeighbour(0, 1), -1);
+    } else {
+        EXPECT_TRUE(false);
+    }
+}
+
+TEST(GraphAdjTest, OutAndInDegree) {
+    GraphAdj<int, double> g1;
+    g1.insertVertex(0);
+    g1.insertVertex(1);
+    g1.insertVertex(2);
+    g1.insertVertex(3);
+    g1.insertVertex(4);
+    g1.insertEdge(0, 1);
+    g1.insertEdge(1, 2);
+    g1.insertEdge(2, 1);
+    g1.insertEdge(2, 4);
+
+    EXPECT_EQ(g1.getOutDegree(0), 1);
+    EXPECT_EQ(g1.getOutDegree(1), 1);
+    EXPECT_EQ(g1.getOutDegree(2), 2);
+    EXPECT_EQ(g1.getOutDegree(3), 0);
+
+    EXPECT_EQ(g1.getInDegree(0), 0);
+    EXPECT_EQ(g1.getInDegree(1), 2);
+    EXPECT_EQ(g1.getInDegree(2), 1);
+    EXPECT_EQ(g1.getInDegree(3), 0);
+    EXPECT_EQ(g1.getInDegree(4), 1);
+}
+
+TEST(GraphAdjTest, Reverse) {
+    GraphAdj<int, double> g1;
+    g1.insertVertex(0);
+    g1.insertVertex(1);
+    g1.insertVertex(2);
+    g1.insertVertex(3);
+    g1.insertVertex(4);
+    g1.insertEdge(0, 1);
+    g1.insertEdge(0, 2);
+    g1.insertEdge(2, 3);
+    g1.insertEdge(2, 4);
+    // g1.debug_print();
+    g1.reverse();
+    // g1.debug_print();
+
+    EXPECT_EQ(g1.getInDegree(0), 2);
+    EXPECT_EQ(g1.getInDegree(1), 0);
+    EXPECT_EQ(g1.getInDegree(2), 2);
+    EXPECT_EQ(g1.getInDegree(3), 0);
+    EXPECT_EQ(g1.getInDegree(4), 0);
+
+    EXPECT_EQ(g1.getOutDegree(0), 0);
+    EXPECT_EQ(g1.getOutDegree(1), 1);
+    EXPECT_EQ(g1.getOutDegree(2), 1);
+    EXPECT_EQ(g1.getOutDegree(3), 1);
+    EXPECT_EQ(g1.getOutDegree(4), 1);
+
+    EXPECT_EQ(g1.getFirstNeighbour(1), 0);
+    EXPECT_EQ(g1.getFirstNeighbour(2), 0);
+    EXPECT_EQ(g1.getFirstNeighbour(3), 2);
+    EXPECT_EQ(g1.getFirstNeighbour(4), 2);
 }
 #endif  // GRAPHADJ_TEST_CPP

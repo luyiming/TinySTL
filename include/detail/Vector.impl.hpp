@@ -248,6 +248,7 @@ namespace TinySTL {
     bool operator >= (const vector<T>& lhs, const vector<T>& rhs) {
         return !(lhs < rhs);
     }
-}
+
+} // namespace TinySTL
 
 #endif // VECTOR_IMPL_H
