@@ -8,247 +8,529 @@
 #ifndef VECTOR_IMPL_H
 #define VECTOR_IMPL_H
 
-#include <cstdlib>
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
+#include <memory>
 
 #include "Vector.hpp"
 
 namespace TinySTL {
 
-    template <typename T>
-    vector<T>::vector() {
-        currentSize = 0;
-        maxSize = 1;
-        data = new T[maxSize];
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(const allocator_type& alloc)
+        : dbegin(nullptr),
+          dend(nullptr),
+          endOfStorage(nullptr),
+          alloc(alloc) {
     }
 
-    template <typename T>
-    vector<T>::vector(size_t count, const T& value) {
-        data = new T[count];
-        for (size_t i = 0; i < count; ++i)
-            data[i] = value;
-        currentSize = count;
-        maxSize = count;
-    }
-
-    template <typename T>
-    vector<T>::vector(const vector<T>& rhs) {
-        maxSize = rhs.maxSize;
-        currentSize = rhs.currentSize;
-        data = new T[maxSize];
-        for (size_t i = 0; i < currentSize; ++i) {
-            data[i] = rhs.data[i];;
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(size_type n) {
+        alloc = allocator_type();
+        if (n > 0) {
+            dbegin = alloc.allocate(n);
+            std::uninitialized_fill_n(dbegin, n, value_type());
+        } else {
+            dbegin = nullptr;
         }
+        dend         = dbegin + n;
+        endOfStorage = dend;
     }
 
-    template <typename T>
-    vector<T>::~vector() {
-        if (data != NULL)
-            delete[] data;
-    }
-
-    template <typename T>
-    void vector<T>::overflowHandle(size_t minSize) {
-        maxSize *= growthFactor;
-        if (maxSize < minSize) {
-            maxSize = minSize;
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(size_type n, const value_type& val, const allocator_type& alloc)
+        : alloc(alloc) {
+        if (n > 0) {
+            dbegin = alloc.allocate(n);
+            std::uninitialized_fill_n(dbegin, n, val);
+        } else {
+            dbegin = nullptr;
         }
-        T* oldData = data;
-        data = new T[maxSize];
-        for (size_t i = 0; i < currentSize; i++) {
-            data[i] = oldData[i];
-        }
-        delete[] oldData;
+        dend         = dbegin + n;
+        endOfStorage = dend;
     }
 
-    template <typename T>
-    vector<T>& vector<T>::operator = (const vector<T>& rhs) {
-        if (&rhs != this) {
-            if (data != NULL) {
-                delete[] data;
+    template <typename T, typename Alloc>
+    template <typename InputIterator>
+    vector<T, Alloc>::vector(InputIterator first, InputIterator last, const allocator_type& alloc_)
+        : alloc(alloc_) {
+        if (last - first > 0) {
+            dbegin = alloc.allocate(last - first);
+            std::uninitialized_copy(first, last, dbegin);
+        } else {
+            dbegin = nullptr;
+        }
+        dend         = dbegin + last - first;
+        endOfStorage = dend;
+    }
+
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(const vector& x) {
+        alloc                     = x.alloc;
+        difference_type allocSize = x.endOfStorage - x.dbegin;
+        if (allocSize > 0) {
+            dbegin = alloc.allocate(allocSize);
+            std::uninitialized_copy(x.dbegin, x.dend, dbegin);
+        } else {
+            dbegin = nullptr;
+        }
+        dend         = dbegin + (x.dend - x.dbegin);
+        endOfStorage = dbegin + allocSize;
+    }
+
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(const vector& x, const allocator_type& alloc)
+        : alloc(alloc) {
+        difference_type allocSize = x.endOfStorage - x.dbegin;
+        if (allocSize > 0) {
+            dbegin = alloc.allocate(allocSize);
+            std::uninitialized_copy(x.dbegin, x.dend, dbegin);
+        } else {
+            dbegin = nullptr;
+        }
+        dend         = dbegin + x.dend - x.dbegin;
+        endOfStorage = dbegin + allocSize;
+    }
+
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(vector&& x) {
+        alloc        = x.alloc;
+        dbegin       = x.dbegin;
+        dend         = x.dbegin;
+        endOfStorage = x.endOfStorage;
+        // for save deallocate
+        dbegin       = nullptr;
+        dend         = nullptr;
+        endOfStorage = nullptr;
+    }
+
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::vector(vector&& x, const allocator_type& alloc)
+        : alloc(alloc) {
+        dbegin       = x.dbegin;
+        dend         = x.dbegin;
+        endOfStorage = x.endOfStorage;
+        // for save deallocate
+        dbegin       = nullptr;
+        dend         = nullptr;
+        endOfStorage = nullptr;
+    }
+
+    template <typename T, typename Alloc>
+    vector<T, Alloc>::~vector() {
+        clear();
+    }
+
+    template <typename T, typename Alloc>
+    vector<T, Alloc>& vector<T, Alloc>::operator=(const vector& x) {
+        if (&x != this) {
+            if (dbegin != nullptr) {
+                for (T* p = dbegin; p != dend; ++p) {
+                    alloc.destroy(p);
+                }
+                alloc.deallocate(dbegin, dend - dbegin);
             }
-            maxSize = rhs.maxSize;
-            currentSize = rhs.currentSize;
-            data = new T[maxSize];
-            for (size_t i = 0; i < currentSize; ++i) {
-                data[i] = rhs.data[i];;
+            alloc                     = x.alloc;
+            difference_type allocSize = x.endOfStorage - x.dbegin;
+            if (allocSize > 0) {
+                dbegin = alloc.allocate(allocSize);
+                std::uninitialized_copy(x.dbegin, x.dend, dbegin);
+            } else {
+                dbegin = nullptr;
             }
+            dend         = dbegin + (x.dend - x.dbegin);
+            endOfStorage = dbegin + allocSize;
         }
         return *this;
     }
 
-    template <typename T>
-    T& vector<T>::at(size_t pos) {
-        assert(pos >= 0 && pos < currentSize);
-        return data[pos];
-    }
-
-    template <typename T>
-    const T& vector<T>::at(size_t pos) const {
-        assert(pos >= 0 && pos < currentSize);
-        return data[pos];
-    }
-
-    template <typename T>
-    T& vector<T>::operator[] (size_t pos) {
-        assert(pos >= 0 && pos < currentSize);
-        return data[pos];
-    }
-
-    template <typename T>
-    const T& vector<T>::operator[] (size_t pos) const {
-        assert(pos >= 0 && pos < currentSize);
-        return data[pos];
-    }
-
-    template <typename T>
-    T& vector<T>::front() {
-        return data[0];
-    }
-
-    template <typename T>
-    const T& vector<T>::front() const {
-        return data[0];
-    }
-
-    template <typename T>
-    T& vector<T>::back() {
-        if (currentSize == 0)
-            return data[0];
-        else
-            return data[currentSize - 1];
-    }
-
-    template <typename T>
-    const T& vector<T>::back() const {
-        if (currentSize == 0)
-            return data[0];
-        else
-            return data[currentSize - 1];
-    }
-
-    template <typename T>
-    bool vector<T>::empty() const {
-        return 0 == currentSize;
-    }
-
-    template <typename T>
-    size_t vector<T>::size() const {
-        return currentSize;
-    }
-
-    template <typename T>
-    size_t vector<T>::capacity() const {
-        return maxSize;
-    }
-
-    template <typename T>
-    void vector<T>::clear() {
-        currentSize = 0;
-    }
-
-    template <typename T>
-    void vector<T>::insert(size_t pos, const T& value) {
-        insert(pos, 1, value);
-    }
-
-    template <typename T>
-    void vector<T>::insert(size_t pos, size_t count, const T& value) {
-        assert(pos >= 0 && pos <= currentSize);
-        if (currentSize + count > maxSize)
-            overflowHandle(currentSize + count);
-        for (size_t i = currentSize + count - 1; i >= pos + count; --i) {
-            data[i] = data[i - count];
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::resize(size_type n) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        if (n <= currentSize) {
+            for (T* p = dbegin + n; p != dend; ++p) {
+                alloc.destroy(p);
+            }
+            dend = dbegin + n;
+        } else if (n <= maxSize) {
+            std::uninitialized_fill(dend, dbegin + n, value_type());
+            dend = dbegin + n;
+        } else {
+            T* oldBegin = dbegin;
+            T* oldEnd   = dend;
+            dbegin      = alloc.allocate(n);
+            std::uninitialized_copy_n(oldBegin, currentSize, dbegin);
+            std::uninitialized_fill(dbegin + currentSize, dbegin + n, value_type());
+            dend         = dbegin + n;
+            endOfStorage = dend;
+            for (T* p = oldBegin; p != oldEnd; ++p) {
+                alloc.destroy(p);
+            }
+            alloc.deallocate(oldBegin, maxSize);
         }
-        for (size_t i = pos; i < pos + count; ++i) {
-            data[i] = value;
-        }
-        currentSize += count;
     }
 
-    template <typename T>
-    void vector<T>::erase(size_t pos) {
-        if (currentSize == 0)
-            return;
-        assert(pos >= 0 && pos < currentSize);
-        for (size_t i = pos; i < currentSize - 1; ++i) {
-            data[i] = data[i + 1];
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::resize(size_type n, const value_type& val) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        if (n <= currentSize) {
+            for (T* p = dbegin + n; p != dend; ++p) {
+                alloc.destroy(p);
+            }
+            dend = dbegin + n;
+        } else if (n <= maxSize) {
+            std::uninitialized_fill(dend, dbegin + n, value_type());
+            dend = dbegin + n;
+        } else {
+            T* oldBegin = dbegin;
+            T* oldEnd   = dend;
+            dbegin      = alloc.allocate(n);
+            std::uninitialized_copy_n(oldBegin, currentSize, dbegin);
+            std::uninitialized_fill(dbegin + currentSize, dbegin + n, val);
+            dend         = dbegin + n;
+            endOfStorage = dend;
+            for (T* p = oldBegin; p != oldEnd; ++p) {
+                alloc.destroy(p);
+            }
+            alloc.deallocate(oldBegin, maxSize);
         }
-        currentSize--;
     }
 
-    template <typename T>
-    void vector<T>::erase(size_t first, size_t last) {
-        assert(first <= last);
-        assert(first >= 0 && first < currentSize);
-        assert(last >= 0 && last <= currentSize);
-        size_t length = last - first;
-        for (size_t i = first; i < currentSize - length; ++i) {
-            data[i] = data[i + length];
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::reserve(size_type n) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        if (n > maxSize) {
+            T* oldBegin = dbegin;
+            T* oldEnd   = dend;
+            dbegin      = alloc.allocate(n);
+            if (currentSize > 0) {
+                std::uninitialized_copy_n(oldBegin, currentSize, dbegin);
+            }
+            dend         = dbegin + currentSize;
+            endOfStorage = dbegin + n;
+            for (T* p = oldBegin; p != oldEnd; ++p) {
+                alloc.destroy(p);
+            }
+            alloc.deallocate(oldBegin, maxSize);
         }
-        currentSize -= length;
     }
 
-    template <typename T>
-    void vector<T>::push_back(const T& value) {
-        if (currentSize == maxSize)
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::shrink_to_fit() {
+        return;
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::reference vector<T, Alloc>::at(size_type n) {
+        if (n + 1 > size()) {
+            throw std::out_of_range("index is out of range");
+        }
+        return dbegin[n];
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::const_reference vector<T, Alloc>::at(size_type n) const {
+        if (n + 1 > size()) {
+            throw std::out_of_range("index is out of range");
+        }
+        return dbegin[n];
+    }
+
+    template <typename T, typename Alloc>
+    template <class InputIterator>
+    void vector<T, Alloc>::assign(InputIterator first, InputIterator last) {
+        size_type n = last - first;
+        if (n > capacity()) {
+            overflowHandle(n);
+        }
+        for (iterator p = dbegin; p != dend; p++) {
+            alloc.destroy(p);
+        }
+        uninitialized_copy(first, last, dbegin);
+        dend = dbegin + n;
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::assign(size_type n, const value_type& val) {
+        if (n > capacity()) {
+            overflowHandle(n);
+        }
+        for (iterator p = dbegin; p != dend; p++) {
+            alloc.destroy(p);
+        }
+        uninitialized_fill_n(dbegin, n, val);
+        dend = dbegin + n;
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::assign(std::initializer_list<value_type> il) {
+        size_type n = il.size();
+        if (n > capacity()) {
+            overflowHandle(n);
+        }
+        for (iterator p = dbegin; p != dend; p++) {
+            alloc.destroy(p);
+        }
+        uninitialized_copy(il.begin(), il.end(), dbegin);
+        dend = dbegin + n;
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::push_back(const value_type& val) {
+        if (dend == endOfStorage) {
             overflowHandle();
-        data[currentSize++] = value;
+        }
+        *dend = val;
+        dend++;
     }
 
-    template <typename T>
-    void vector<T>::pop_back() {
-        if (currentSize == 0)
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::push_back(value_type&& val) {
+        if (dend == endOfStorage) {
+            overflowHandle();
+        }
+        *dend = std::move(val);
+        dend++;
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::pop_back() {
+        if (size() == 0) {
             return;
-        currentSize--;
+        }
+        dend--;
+        alloc.destroy(dend);
     }
 
-    template <typename T>
-    bool operator == (const vector<T>& lhs, const vector<T>& rhs) {
-        if (lhs.currentSize == rhs.currentSize) {
-            for (size_t i = 0; i < lhs.currentSize; ++i) {
-                if (lhs.data[i] != rhs.data[i])
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::insert(const_iterator position, const value_type& val) {
+        return insert(position, 1, val);
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::insert(const_iterator position, size_type n, const value_type& val) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        size_type pos         = position - begin();
+        if (currentSize + n > maxSize) {
+            overflowHandle(currentSize + n);
+        }
+        for (int i = currentSize + n - 1; i >= pos + n; --i) {
+            dbegin[i] = dbegin[i - n];
+        }
+        for (int i = pos; i < pos + n; ++i) {
+            dbegin[i] = val;
+        }
+        dend += n;
+        return dbegin + pos + n - 1;
+    }
+
+    template <typename T, typename Alloc>
+    template <class InputIterator>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::insert(const_iterator position, InputIterator first, InputIterator last) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        size_type pos         = position - begin();
+        size_type n           = last - first;
+        if (currentSize + n > maxSize) {
+            overflowHandle(currentSize + n);
+        }
+        for (int i = currentSize + n - 1; i >= pos + n; --i) {
+            dbegin[i] = dbegin[i - n];
+        }
+        std::uninitialized_copy(first, last, dbegin + pos);
+        dend += n;
+        return dbegin + pos + n - 1;
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::insert(const_iterator position, value_type&& val) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        size_type pos         = position - begin();
+        if (currentSize + 1 > maxSize) {
+            overflowHandle(currentSize + 1);
+        }
+        for (int i = currentSize; i >= pos + 1; --i) {
+            dbegin[i] = dbegin[i - 1];
+        }
+        dbegin[pos] = std::move(val);
+        dend++;
+        return dbegin + pos;
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::insert(const_iterator position, std::initializer_list<value_type> il) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        size_type pos         = position - begin();
+        size_type n           = il.size();
+        if (currentSize + n > maxSize) {
+            overflowHandle(currentSize + n);
+        }
+        for (int i = currentSize + n - 1; i >= pos + n; --i) {
+            dbegin[i] = dbegin[i - n];
+        }
+        uninitialized_copy(il.begin(), il.end(), dbegin + pos);
+        dend += n;
+        return dbegin + pos + n - 1;
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::erase(const_iterator position) {
+        size_type currentSize = size();
+        size_type pos         = position - begin();
+        if (currentSize == 0) {
+            return nullptr;
+        }
+        alloc.destroy(dbegin + pos);
+        for (size_type i = pos; i < currentSize - 1; ++i) {
+            dbegin[i] = dbegin[i + 1];
+        }
+        dend--;
+        return dbegin + pos;
+    }
+
+    template <typename T, typename Alloc>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::erase(const_iterator first, const_iterator last) {
+        assert(first >= dbegin);
+        assert(first <= last);
+        assert(last <= dend);
+        if (first == last) {
+            return;
+        }
+        size_type length = last - first;
+        for (const_iterator p = first; p != last; p++) {
+            alloc.destroy(p);
+        }
+        for (const_iterator p = first, q = last; q != dend; ++p, ++q) {
+            *p = *q;
+        }
+        dend -= length;
+        return first;
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::swap(vector& x) {
+        std::swap(alloc, x.alloc);
+        std::swap(dbegin, x.dbegin);
+        std::swap(dend, x.dend);
+        std::swap(endOfStorage, x.endOfStorage);
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::clear() {
+        if (dbegin != nullptr) {
+            for (T* p = dbegin; p != dend; ++p) {
+                alloc.destroy(p);
+            }
+            alloc.deallocate(dbegin, dend - dbegin);
+        }
+        dbegin = dend = endOfStorage = nullptr;
+    }
+
+    template <typename T, typename Alloc>
+    template <class... Args>
+    typename vector<T, Alloc>::iterator
+    vector<T, Alloc>::emplace(const_iterator position, Args&&... args) {
+        size_type currentSize = size();
+        size_type maxSize     = capacity();
+        size_type pos         = position - begin();
+        if (currentSize + 1 > maxSize) {
+            overflowHandle(currentSize + 1);
+        }
+        for (int i = currentSize; i >= pos + 1; --i) {
+            dbegin[i] = dbegin[i - 1];
+        }
+        alloc.construct(dbegin + pos, std::forward<Args>(args)...);
+        dend++;
+        return dbegin + pos;
+    }
+
+    template <typename T, typename Alloc>
+    template <class... Args>
+    void vector<T, Alloc>::emplace_back(Args&&... args) {
+        if (dend == endOfStorage) {
+            overflowHandle();
+        }
+        alloc.construct(dend, std::forward<Args>(args)...);
+        dend++;
+    }
+
+    template <typename T, typename Alloc>
+    void vector<T, Alloc>::overflowHandle(size_t minSize) {
+        size_type currentSize = size();
+        size_type allocSize   = 2 * currentSize;
+        if (allocSize == 0) {
+            allocSize = 1;
+        }
+        if (allocSize < minSize) {
+            allocSize = minSize;
+        }
+        std::cout << "alloc size: " << allocSize << std::endl;
+        reserve(allocSize);
+    }
+
+    template <class T, class Alloc>
+    void swap(vector<T, Alloc>& lhs, vector<T, Alloc>& rhs) {
+        lhs.swap(rhs);
+    }
+
+    template <typename T, typename Alloc>
+    bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+        if (lhs.size() == rhs.size()) {
+            for (size_t i = 0; i < lhs.size(); ++i) {
+                if (lhs[i] != rhs[i])
                     return false;
             }
             return true;
-        }
-        else
+        } else
             return false;
     }
 
-    template <typename T>
-    bool operator != (const vector<T>& lhs, const vector<T>& rhs) {
+    template <typename T, typename Alloc>
+    bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
         return !(lhs == rhs);
     }
 
-    template <typename T>
-    bool operator < (const vector<T>& lhs, const vector<T>& rhs) {
-        size_t length = lhs.currentSize < rhs.currentSize ? lhs.currentSize : rhs.currentSize;
+    template <typename T, typename Alloc>
+    bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+        size_t length = lhs.size() < rhs.size() ? lhs.size() : rhs.size();
         for (size_t i = 0; i < length; ++i) {
-            if (lhs.data[i] < rhs.data[i])
+            if (lhs[i] < rhs[i])
                 return true;
-            else if (lhs.data[i] > rhs.data[i])
+            else if (lhs[i] > rhs[i])
                 return false;
         }
-        return lhs.currentSize < rhs.currentSize;
+        return lhs.size() < rhs.size();
     }
 
-    template <typename T>
-    bool operator <= (const vector<T>& lhs, const vector<T>& rhs) {
+    template <typename T, typename Alloc>
+    bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
         return lhs < rhs || lhs == rhs;
     }
 
-    template <typename T>
-    bool operator > (const vector<T>& lhs, const vector<T>& rhs) {
+    template <typename T, typename Alloc>
+    bool operator>(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
         return !(lhs < rhs || lhs == rhs);
     }
 
-    template <typename T>
-    bool operator >= (const vector<T>& lhs, const vector<T>& rhs) {
+    template <typename T, typename Alloc>
+    bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
         return !(lhs < rhs);
     }
 
-} // namespace TinySTL
+}  // namespace TinySTL
 
-#endif // VECTOR_IMPL_H
+#endif  // VECTOR_IMPL_H

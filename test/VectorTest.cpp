@@ -1,18 +1,20 @@
 #ifndef VECTORTEST_HPP
 #define VECTORTEST_HPP
 
-#include "gtest/gtest.h"
+#include <iostream>
 #include "Vector.hpp"
+#include "gtest/gtest.h"
 
 TEST(VectorTest, Misc) {
     TinySTL::vector<int> vec;
+/*
     EXPECT_TRUE(vec.empty());
     EXPECT_EQ((size_t)0, vec.size());
 
     TinySTL::vector<int> vec2(100, 1);
     EXPECT_FALSE(vec2.empty());
     EXPECT_EQ((size_t)100, vec2.size());
-    for (size_t i = 0; i < 100; i++)
+    for (size_t i  = 0; i < 100; i++)
         vec2.at(i) = (int)i;
     for (size_t i = 0; i < 100; i++) {
         EXPECT_EQ(vec2[i], vec2.at(i));
@@ -33,8 +35,9 @@ TEST(VectorTest, Misc) {
     vec2 = vec3;
     EXPECT_TRUE(vec2.empty());
     EXPECT_EQ((size_t)0, vec2.size());
+*/
 }
-
+/*
 TEST(VectorTest, FrontBack) {
     TinySTL::vector<int> vec;
     for (int i = 0; i < 100; i++) {
@@ -45,7 +48,7 @@ TEST(VectorTest, FrontBack) {
     for (int i = 0; i < 100; i++) {
         EXPECT_EQ(i, vec.front());
         EXPECT_EQ(99, vec.back());
-        vec.erase(0);
+        vec.erase(vec.begin());
     }
 }
 
@@ -53,7 +56,7 @@ TEST(VectorTest, InsertPush) {
     TinySTL::vector<int> vec;
 
     for (size_t i = 0; i < 100; i++) {
-        vec.insert(i, i);
+        vec.insert(vec.begin() + i, i);
     }
     EXPECT_EQ((size_t)100, vec.size());
     EXPECT_FALSE(vec.empty());
@@ -62,7 +65,7 @@ TEST(VectorTest, InsertPush) {
         EXPECT_EQ((int)i, vec[i]);
     }
 
-    vec.insert(100, 100, 1024);
+    vec.insert(vec.begin() + 100, 100, 1024);
     EXPECT_EQ((size_t)200, vec.size());
     EXPECT_FALSE(vec.empty());
     for (size_t i = 100; i < 200; i++) {
@@ -117,11 +120,27 @@ TEST(VectorTest, ErasePop) {
         EXPECT_EQ((size_t)i, vec.size());
     }
 
-    vec.erase(50, vec.size());
+    vec.erase(vec.begin() + 50, vec.end());
     EXPECT_EQ((size_t)50, vec.size());
     for (size_t i = 0; i < 50; i++) {
         EXPECT_EQ((int)i, vec.at(i));
     }
 }
+*/
+class A {
+    int* p;
+
+   public:
+    A() { p = new int[2]; }
+    A(const A& rhs) { p = new int[2]; }
+    A& operator=(const A& rhs) {
+        p = new int[2];
+        return *this;
+    }
+    ~A() {
+        std::cout << "A destroy" << std::endl;
+        delete[] p;
+    }
+};
 
 #endif  // VECTORTEST_HPP
