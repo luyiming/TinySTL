@@ -32,4 +32,10 @@
 .clang-format
 .clang_complete
 
+# Visual Studio
+Debug
+Release
+.vs
+
+# obj files
 obj
