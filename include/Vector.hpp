@@ -85,13 +85,13 @@ namespace TinySTL {
         const_reference at (size_type n) const;
               reference front()         { return *dbegin; }
         const_reference front() const   { return *dbegin; }
-              reference back()          { return *dend; }
-        const_reference back() const    { return *dend; }
+              reference back()          { return *(dend - 1); }
+        const_reference back() const    { return *(dend - 1); }
               pointer   data() noexcept       { return dbegin; }
         const_pointer   data() const noexcept { return dbegin; }
 
         // Modifiers
-        template <class InputIterator>
+        template <class InputIterator, typename = typename std::iterator_traits<InputIterator>::value_type>
         void assign(InputIterator first, InputIterator last);  // range (1)
         void assign(size_type n, const value_type& val);       // fill  (2)
         void assign(std::initializer_list<value_type> il);     // initializer list (3)
@@ -103,7 +103,7 @@ namespace TinySTL {
         
         iterator insert(const_iterator position, const value_type& val);                   // single element (1)
         iterator insert(const_iterator position, size_type n, const value_type& val);      // fill (2)
-        template <class InputIterator>
+        template <class InputIterator, typename = typename std::iterator_traits<InputIterator>::value_type>
         iterator insert(const_iterator position, InputIterator first, InputIterator last); // range (3)
         iterator insert(const_iterator position, value_type&& val);                        // move (4)
         iterator insert(const_iterator position, std::initializer_list<value_type> il);    // initializer list (5)

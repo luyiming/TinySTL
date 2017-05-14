@@ -28,12 +28,12 @@ namespace TinySTL {
 
     template <typename T, typename Alloc>
     vector<T, Alloc>::vector(size_type n) {
-        alloc = allocator_type();
-        if (n > 0) {
+        alloc  = allocator_type();
+        if (n == 0) {
+            dbegin = nullptr;
+        } else {
             dbegin = alloc.allocate(n);
             std::uninitialized_fill_n(dbegin, n, value_type());
-        } else {
-            dbegin = nullptr;
         }
         dend         = dbegin + n;
         endOfStorage = dend;
@@ -42,11 +42,11 @@ namespace TinySTL {
     template <typename T, typename Alloc>
     vector<T, Alloc>::vector(size_type n, const value_type& val, const allocator_type& alloc_)
         : alloc(alloc_) {
-        if (n > 0) {
+        if (n == 0) {
+            dbegin = nullptr;
+        } else {
             dbegin = alloc.allocate(n);
             std::uninitialized_fill_n(dbegin, n, val);
-        } else {
-            dbegin = nullptr;
         }
         dend         = dbegin + n;
         endOfStorage = dend;
@@ -56,13 +56,14 @@ namespace TinySTL {
     template <typename InputIterator, typename >
     vector<T, Alloc>::vector(InputIterator first, InputIterator last, const allocator_type& alloc_)
         : alloc(alloc_) {
-        if (last - first > 0) {
-            dbegin = alloc.allocate(last - first);
-            std::uninitialized_copy(first, last, dbegin);
-        } else {
+        difference_type n = last - first;
+        if (n == 0) {
             dbegin = nullptr;
+        } else {
+            dbegin = alloc.allocate(n);
+            std::uninitialized_copy(first, last, dbegin);
         }
-        dend         = dbegin + (last - first);
+        dend         = dbegin + n;
         endOfStorage = dend;
     }
 
@@ -70,11 +71,11 @@ namespace TinySTL {
     vector<T, Alloc>::vector(const vector& x, const allocator_type& alloc_)
         : alloc(alloc_) {
         difference_type allocSize = x.endOfStorage - x.dbegin;
-        if (allocSize > 0) {
+        if (allocSize == 0) {
+            dbegin = nullptr;
+        } else {
             dbegin = alloc.allocate(allocSize);
             std::uninitialized_copy(x.dbegin, x.dend, dbegin);
-        } else {
-            dbegin = nullptr;
         }
         dend         = dbegin + (x.dend - x.dbegin);
         endOfStorage = dbegin + allocSize;
@@ -93,8 +94,17 @@ namespace TinySTL {
     }
 
     template<typename T, typename Alloc>
-    inline vector<T, Alloc>::vector(std::initializer_list<value_type> il, const allocator_type & alloc_) {
-        dbegin = dend = endOfStorage = nullptr;
+    inline vector<T, Alloc>::vector(std::initializer_list<value_type> il, const allocator_type & alloc_)
+        : alloc(alloc_) {
+        size_type allocSize = il.size();
+        if (allocSize == 0) {
+            dbegin = nullptr;
+        } else {
+            dbegin = alloc.allocate(allocSize);
+            std::uninitialized_copy(il.begin(), il.end(), dbegin);
+        }
+        dend         = dbegin + allocSize;
+        endOfStorage = dend;
     }
 
     template <typename T, typename Alloc>
@@ -162,7 +172,7 @@ namespace TinySTL {
             }
             dend = dbegin + n;
         } else if (n <= maxSize) {
-            std::uninitialized_fill(dend, dbegin + n, value_type());
+            std::uninitialized_fill(dend, dbegin + n, val);
             dend = dbegin + n;
         } else {
             T* oldBegin = dbegin;
@@ -206,7 +216,7 @@ namespace TinySTL {
 
     template <typename T, typename Alloc>
     typename vector<T, Alloc>::reference vector<T, Alloc>::at(size_type n) {
-        if (n + 1 > size()) {
+        if (n >= size()) {
             throw std::out_of_range("index is out of range");
         }
         return dbegin[n];
@@ -214,14 +224,14 @@ namespace TinySTL {
 
     template <typename T, typename Alloc>
     typename vector<T, Alloc>::const_reference vector<T, Alloc>::at(size_type n) const {
-        if (n + 1 > size()) {
+        if (n >= size()) {
             throw std::out_of_range("index is out of range");
         }
         return dbegin[n];
     }
 
     template <typename T, typename Alloc>
-    template <class InputIterator>
+    template <class InputIterator, typename >
     void vector<T, Alloc>::assign(InputIterator first, InputIterator last) {
         size_type n = last - first;
         if (n > capacity()) {
@@ -301,10 +311,10 @@ namespace TinySTL {
         if (currentSize + n > maxSize) {
             overflowHandle(currentSize + n);
         }
-        for (int i = currentSize + n - 1; i >= pos + n; --i) {
+        for (size_type i = currentSize + n - 1; i != pos + n; --i) {
             dbegin[i] = dbegin[i - n];
         }
-        for (int i = pos; i < pos + n; ++i) {
+        for (size_type i = pos; i < pos + n; ++i) {
             dbegin[i] = val;
         }
         dend += n;
@@ -312,7 +322,7 @@ namespace TinySTL {
     }
 
     template <typename T, typename Alloc>
-    template <class InputIterator>
+    template <typename InputIterator, typename >
     typename vector<T, Alloc>::iterator
     vector<T, Alloc>::insert(const_iterator position, InputIterator first, InputIterator last) {
         size_type currentSize = size();
@@ -388,17 +398,17 @@ namespace TinySTL {
         assert(first <= last);
         assert(last <= dend);
         if (first == last) {
-            return;
+            return dbegin + (first - dbegin);
         }
         size_type length = last - first;
         for (const_iterator p = first; p != last; p++) {
             alloc.destroy(p);
         }
-        for (const_iterator p = first, q = last; q != dend; ++p, ++q) {
-            *p = *q;
+        for (int i = first - dbegin, j = last - dbegin; j < dend - dbegin; ++i, ++j) {
+            dbegin[i] = dbegin[j];
         }
         dend -= length;
-        return first;
+        return dbegin + (first - dbegin);
     }
 
     template <typename T, typename Alloc>
@@ -458,7 +468,7 @@ namespace TinySTL {
         if (allocSize < minSize) {
             allocSize = minSize;
         }
-        std::cout << "alloc size: " << allocSize << std::endl;
+        // std::cout << "alloc size: " << allocSize << std::endl;
         reserve(allocSize);
     }
 

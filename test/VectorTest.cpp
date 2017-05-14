@@ -5,53 +5,113 @@
 #include "Vector.hpp"
 #include "gtest/gtest.h"
 
-TEST(VectorTest, Misc) {
-
-    TinySTL::vector<int> vec7{ 1,2 };
-    /*
-    EXPECT_TRUE(vec.empty());
-    EXPECT_EQ((size_t)0, vec.size());
+TEST(VectorTest, Constructor) {
+    TinySTL::vector<int> vec1;
+    EXPECT_TRUE(vec1.empty());
 
     TinySTL::vector<int> vec2(100);
     EXPECT_FALSE(vec2.empty());
     EXPECT_EQ((size_t)100, vec2.size());
-    for (size_t i  = 0; i < 100; i++)
+    for (size_t i = 0; i < 100; i++) {
+        EXPECT_EQ(0, vec2.at(i));
+    }
+    for (size_t i = 0; i < 100; i++) {
         vec2.at(i) = (int)i;
+    }
     for (size_t i = 0; i < 100; i++) {
         EXPECT_EQ((int)i, vec2.at(i));
     }
 
-    TinySTL::vector<int> vec3(vec2);
-    EXPECT_FALSE(vec3.empty());
-    EXPECT_EQ((size_t)100, vec3.size());
+    TinySTL::vector<int> vec3(100, 1);
     for (size_t i = 0; i < 100; i++) {
-        EXPECT_EQ((int)i, vec3.at(i));
+        EXPECT_EQ(1, vec3.at(i));
     }
 
-    vec3.clear();
-    EXPECT_TRUE(vec3.empty());
-    EXPECT_EQ((size_t)0, vec3.size());
+    TinySTL::vector<int> vec4(vec3);
+    EXPECT_FALSE(vec4.empty());
+    EXPECT_EQ((size_t)100, vec4.size());
+    for (size_t i = 0; i < 100; i++) {
+        EXPECT_EQ(1, vec4.at(i));
+    }
 
-    vec2 = vec3;
-    EXPECT_TRUE(vec2.empty());
-    EXPECT_EQ((size_t)0, vec2.size());*/
+    TinySTL::vector<int> vec5(vec4.begin(), vec4.end());
+    EXPECT_FALSE(vec5.empty());
+    EXPECT_EQ((size_t)100, vec5.size());
+    for (size_t i = 0; i < 100; i++) {
+        EXPECT_EQ(1, vec5.at(i));
+    }
+
+    TinySTL::vector<int> vec6{ 1,2,3,4,5,6,7,8,9,10 };
+    EXPECT_FALSE(vec6.empty());
+    EXPECT_EQ((size_t)10, vec6.size());
+    for (size_t i = 0; i < 10; i++) {
+        EXPECT_EQ(int(i + 1), vec6.at(i));
+    }
+
+    vec6.clear();
+    EXPECT_TRUE(vec6.empty());
+
+    vec6 = vec5;
+    EXPECT_FALSE(vec6.empty());
+    EXPECT_EQ((size_t)100, vec6.size());
+    for (size_t i = 0; i < 100; i++) {
+        EXPECT_EQ(1, vec6.at(i));
+    }
+     
+    TinySTL::vector<int> vec7(TinySTL::vector<int>(100, 1));
+    EXPECT_FALSE(vec7.empty());
+    EXPECT_EQ((size_t)100, vec7.size());
+    for (size_t i = 0; i < 100; i++) {
+        EXPECT_EQ(1, vec7.at(i));
+    }
+
+    TinySTL::vector<TinySTL::vector<int>> vec8(10, vec7);
+    EXPECT_FALSE(vec8.empty());
+    EXPECT_EQ((size_t)10, vec8.size());
+    for (size_t i = 0; i < 10; i++) {
+        for (size_t j = 0; j < 100; j++) {
+            EXPECT_EQ(1, vec8.at(i).at(j));
+        }
+    }
+
+    TinySTL::vector<TinySTL::vector<int>> vec9 = vec8;
 }
-/*
-TEST(VectorTest, FrontBack) {
+
+TEST(VectorTest, Resize) {
     TinySTL::vector<int> vec;
-    for (int i = 0; i < 100; i++) {
+    vec.resize(100, 1);
+    EXPECT_EQ(100, vec.size());
+    for (size_t i = 0; i < 100; i++) {
+        EXPECT_EQ(1, vec.at(i));
+    }
+
+    vec.resize(10);
+    EXPECT_EQ(10, vec.size());
+
+    vec.resize(100, 2);
+    EXPECT_EQ(100, vec.size());
+    for (size_t i = 10; i < 100; i++) {
+        EXPECT_EQ(2, vec.at(i));
+    }
+}
+
+TEST(VectorTest, PushAndPop) {
+    TinySTL::vector<int> vec;
+    for (int i = 0; i < 10; i++) {
         vec.push_back(i);
         EXPECT_EQ(0, vec.front());
         EXPECT_EQ(i, vec.back());
     }
-    for (int i = 0; i < 100; i++) {
-        EXPECT_EQ(i, vec.front());
-        EXPECT_EQ(99, vec.back());
-        vec.erase(vec.begin());
+    for (int i = 9; i >= 0; i--) {
+        EXPECT_EQ(i, vec.back());
+        vec.pop_back();
+        EXPECT_EQ(i, vec.size());
     }
+    EXPECT_TRUE(vec.empty());
 }
 
-TEST(VectorTest, InsertPush) {
+
+TEST(VectorTest, Insert) {
     TinySTL::vector<int> vec;
 
     for (size_t i = 0; i < 100; i++) {
@@ -61,51 +121,32 @@ TEST(VectorTest, InsertPush) {
     EXPECT_FALSE(vec.empty());
     for (size_t i = 0; i < 100; i++) {
         EXPECT_EQ((int)i, vec.at(i));
-        EXPECT_EQ((int)i, vec[i]);
     }
 
     vec.insert(vec.begin() + 100, 100, 1024);
     EXPECT_EQ((size_t)200, vec.size());
-    EXPECT_FALSE(vec.empty());
     for (size_t i = 100; i < 200; i++) {
         EXPECT_EQ(1024, vec.at(i));
-        EXPECT_EQ(1024, vec[i]);
     }
 
-    vec.insert(0, 100, 2048);
+    vec.insert(vec.begin(), 100, 2048);
     EXPECT_EQ((size_t)300, vec.size());
-    EXPECT_FALSE(vec.empty());
     for (size_t i = 0; i < 100; i++) {
         EXPECT_EQ(2048, vec.at(i));
-        EXPECT_EQ(2048, vec[i]);
-    }
-
-    for (int i = 0; i < 100; i++) {
-        vec.push_back(i);
-    }
-    EXPECT_EQ((size_t)400, vec.size());
-    EXPECT_FALSE(vec.empty());
-    for (size_t i = 300; i < 400; i++) {
-        EXPECT_EQ((int)i - 300, vec.at(i));
-        EXPECT_EQ((int)i - 300, vec[i]);
     }
 }
 
-TEST(VectorTest, ErasePop) {
+TEST(VectorTest, Erase) {
     TinySTL::vector<int> vec;
 
     for (int i = 0; i < 400; i++) {
         vec.push_back(i);
     }
 
-    EXPECT_EQ((size_t)400, vec.size());
-    EXPECT_FALSE(vec.empty());
-
     for (int i = 0; i < 100; i++) {
         EXPECT_EQ((size_t)400 - i, vec.size());
         EXPECT_EQ(i, vec.front());
-        EXPECT_EQ(vec.front(), vec.at(0));
-        vec.erase(0);
+        vec.erase(vec.begin());
     }
 
     vec.clear();
@@ -114,7 +155,6 @@ TEST(VectorTest, ErasePop) {
     }
     for (int i = 200 - 1; i > 100 - 1; i--) {
         EXPECT_EQ(i, vec.back());
-        EXPECT_EQ(vec.back(), vec.at(vec.size() - 1));
         vec.pop_back();
         EXPECT_EQ((size_t)i, vec.size());
     }
@@ -125,21 +165,6 @@ TEST(VectorTest, ErasePop) {
         EXPECT_EQ((int)i, vec.at(i));
     }
 }
-*/
-class A {
-    int* p;
 
-   public:
-    A() { p = new int[2]; }
-    A(const A& rhs) { p = new int[2]; }
-    A& operator=(const A& rhs) {
-        p = new int[2];
-        return *this;
-    }
-    ~A() {
-        std::cout << "A destroy" << std::endl;
-        delete[] p;
-    }
-};
 
 #endif  // VECTORTEST_HPP
