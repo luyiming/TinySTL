@@ -8,10 +8,10 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
-#include <cstdlib>
 #include <initializer_list>
 #include <memory>
 #include <stdexcept>
+#include <iterator>
 
 namespace TinySTL {
 
@@ -39,15 +39,13 @@ namespace TinySTL {
                  vector(size_type n, const value_type& val,
                         const allocator_type& alloc = allocator_type());
 
-        template <class InputIterator>
+        template <typename InputIterator, typename = typename std::iterator_traits<InputIterator>::value_type>
         vector(InputIterator first, InputIterator last,
                const allocator_type& alloc = allocator_type());  // range (3)
 
-        vector(const vector& x);                                 // copy (4)
-        vector(const vector& x, const allocator_type& alloc);
+        vector(const vector& x, const allocator_type& alloc = allocator_type()); // copy (4)
 
-        vector(vector&& x);                                      // move (5)
-        vector(vector&& x, const allocator_type& alloc);
+        vector(vector&& x, const allocator_type& alloc = allocator_type()); // move (5)
 
         vector(std::initializer_list<value_type> il,
                const allocator_type& alloc = allocator_type());  // initializer list (6)
@@ -55,7 +53,7 @@ namespace TinySTL {
         ~vector();
 
         vector& operator=(const vector& rhs);
-
+        
         // Iterators:
               iterator begin() noexcept       { return dbegin; }
         const_iterator begin() const noexcept { return dbegin; }
@@ -69,7 +67,7 @@ namespace TinySTL {
         const_iterator cend()   const noexcept { return dend; }
         // const_reverse_iterator crbegin() const noexcept;
         // const_reverse_iterator crend() const noexcept;
-
+        
         // Capacity
         size_type size() const noexcept     { return dend - dbegin; }
         size_type max_size() const noexcept { return (~(size_t)0); }
@@ -97,12 +95,12 @@ namespace TinySTL {
         void assign(InputIterator first, InputIterator last);  // range (1)
         void assign(size_type n, const value_type& val);       // fill  (2)
         void assign(std::initializer_list<value_type> il);     // initializer list (3)
-
+        
         void push_back(const value_type& val);
         void push_back(value_type&& val);
-
+        
         void pop_back();
-
+        
         iterator insert(const_iterator position, const value_type& val);                   // single element (1)
         iterator insert(const_iterator position, size_type n, const value_type& val);      // fill (2)
         template <class InputIterator>

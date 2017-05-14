@@ -14,15 +14,16 @@
 #include <memory>
 
 #include "Vector.hpp"
+#include "..\Vector.hpp"
 
 namespace TinySTL {
 
     template <typename T, typename Alloc>
-    vector<T, Alloc>::vector(const allocator_type& alloc)
+    vector<T, Alloc>::vector(const allocator_type& alloc_)
         : dbegin(nullptr),
           dend(nullptr),
           endOfStorage(nullptr),
-          alloc(alloc) {
+          alloc(alloc_) {
     }
 
     template <typename T, typename Alloc>
@@ -39,8 +40,8 @@ namespace TinySTL {
     }
 
     template <typename T, typename Alloc>
-    vector<T, Alloc>::vector(size_type n, const value_type& val, const allocator_type& alloc)
-        : alloc(alloc) {
+    vector<T, Alloc>::vector(size_type n, const value_type& val, const allocator_type& alloc_)
+        : alloc(alloc_) {
         if (n > 0) {
             dbegin = alloc.allocate(n);
             std::uninitialized_fill_n(dbegin, n, val);
@@ -52,7 +53,7 @@ namespace TinySTL {
     }
 
     template <typename T, typename Alloc>
-    template <typename InputIterator>
+    template <typename InputIterator, typename >
     vector<T, Alloc>::vector(InputIterator first, InputIterator last, const allocator_type& alloc_)
         : alloc(alloc_) {
         if (last - first > 0) {
@@ -61,13 +62,13 @@ namespace TinySTL {
         } else {
             dbegin = nullptr;
         }
-        dend         = dbegin + last - first;
+        dend         = dbegin + (last - first);
         endOfStorage = dend;
     }
 
     template <typename T, typename Alloc>
-    vector<T, Alloc>::vector(const vector& x) {
-        alloc                     = x.alloc;
+    vector<T, Alloc>::vector(const vector& x, const allocator_type& alloc_)
+        : alloc(alloc_) {
         difference_type allocSize = x.endOfStorage - x.dbegin;
         if (allocSize > 0) {
             dbegin = alloc.allocate(allocSize);
@@ -80,22 +81,8 @@ namespace TinySTL {
     }
 
     template <typename T, typename Alloc>
-    vector<T, Alloc>::vector(const vector& x, const allocator_type& alloc)
-        : alloc(alloc) {
-        difference_type allocSize = x.endOfStorage - x.dbegin;
-        if (allocSize > 0) {
-            dbegin = alloc.allocate(allocSize);
-            std::uninitialized_copy(x.dbegin, x.dend, dbegin);
-        } else {
-            dbegin = nullptr;
-        }
-        dend         = dbegin + x.dend - x.dbegin;
-        endOfStorage = dbegin + allocSize;
-    }
-
-    template <typename T, typename Alloc>
-    vector<T, Alloc>::vector(vector&& x) {
-        alloc        = x.alloc;
+    vector<T, Alloc>::vector(vector&& x, const allocator_type& alloc_)
+        : alloc(alloc_) {
         dbegin       = x.dbegin;
         dend         = x.dbegin;
         endOfStorage = x.endOfStorage;
@@ -105,16 +92,9 @@ namespace TinySTL {
         endOfStorage = nullptr;
     }
 
-    template <typename T, typename Alloc>
-    vector<T, Alloc>::vector(vector&& x, const allocator_type& alloc)
-        : alloc(alloc) {
-        dbegin       = x.dbegin;
-        dend         = x.dbegin;
-        endOfStorage = x.endOfStorage;
-        // for save deallocate
-        dbegin       = nullptr;
-        dend         = nullptr;
-        endOfStorage = nullptr;
+    template<typename T, typename Alloc>
+    inline vector<T, Alloc>::vector(std::initializer_list<value_type> il, const allocator_type & alloc_) {
+        dbegin = dend = endOfStorage = nullptr;
     }
 
     template <typename T, typename Alloc>

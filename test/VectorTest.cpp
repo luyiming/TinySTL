@@ -6,18 +6,18 @@
 #include "gtest/gtest.h"
 
 TEST(VectorTest, Misc) {
-    TinySTL::vector<int> vec;
-/*
+
+    TinySTL::vector<int> vec7{ 1,2 };
+    /*
     EXPECT_TRUE(vec.empty());
     EXPECT_EQ((size_t)0, vec.size());
 
-    TinySTL::vector<int> vec2(100, 1);
+    TinySTL::vector<int> vec2(100);
     EXPECT_FALSE(vec2.empty());
     EXPECT_EQ((size_t)100, vec2.size());
     for (size_t i  = 0; i < 100; i++)
         vec2.at(i) = (int)i;
     for (size_t i = 0; i < 100; i++) {
-        EXPECT_EQ(vec2[i], vec2.at(i));
         EXPECT_EQ((int)i, vec2.at(i));
     }
 
@@ -34,8 +34,7 @@ TEST(VectorTest, Misc) {
 
     vec2 = vec3;
     EXPECT_TRUE(vec2.empty());
-    EXPECT_EQ((size_t)0, vec2.size());
-*/
+    EXPECT_EQ((size_t)0, vec2.size());*/
 }
 /*
 TEST(VectorTest, FrontBack) {

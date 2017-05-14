@@ -34,5 +34,8 @@
     <ClInclude Include="..\..\include\detail\Vector.impl.hpp">
       <Filter>Detail Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\algorithm\closestPairOfPoints.hpp">
+      <Filter>Detail Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

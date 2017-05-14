@@ -128,9 +128,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\test\googletest\googletest\src\gtest_main.cc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\test\googletest\googletest;..\..\test\googletest\googletest\include</AdditionalIncludeDirectories>
     </ClCompile>

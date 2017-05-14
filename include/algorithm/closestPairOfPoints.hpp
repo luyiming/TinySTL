@@ -27,7 +27,7 @@ struct Point {
 
 bool operator<(const Point &lhs, const Point &rhs) { return lhs.x < rhs.x; }
 
-double nodeDistance(Point n1, Point n2) {
+static double nodeDistance(Point n1, Point n2) {
     return sqrt((n1.x - n2.x) * (n1.x - n2.x) + (n1.y - n2.y) * (n1.y - n2.y));
 }
 

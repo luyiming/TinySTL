@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Algorithm.hpp" />
+    <ClInclude Include="..\..\include\algorithm\closestPairOfPoints.hpp" />
     <ClInclude Include="..\..\include\detail\MinHeap.impl.hpp" />
     <ClInclude Include="..\..\include\detail\Vector.impl.hpp" />
     <ClInclude Include="..\..\include\Graph.hpp" />
