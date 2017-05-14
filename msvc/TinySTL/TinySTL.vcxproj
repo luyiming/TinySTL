@@ -146,6 +146,7 @@
     <ClInclude Include="..\..\include\Graph.hpp" />
     <ClInclude Include="..\..\include\GraphAdj.hpp" />
     <ClInclude Include="..\..\include\Iterator.hpp" />
+    <ClInclude Include="..\..\include\Memory.hpp" />
     <ClInclude Include="..\..\include\MinHeap.hpp" />
     <ClInclude Include="..\..\include\Vector.hpp" />
   </ItemGroup>

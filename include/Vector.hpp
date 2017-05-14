@@ -13,7 +13,6 @@
 #include <stdexcept>
 #include "Iterator.hpp"
 
-
 namespace TinySTL {
 
     template <typename T, typename Alloc = std::allocator<T>>
