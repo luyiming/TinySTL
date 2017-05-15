@@ -123,9 +123,9 @@ namespace TinySTL {
 
        private:
         // data stored in [dbegin, dend)
-        // allocated buffer is [dbegin, endOfStorage)
-        // free space is [dend, endOfStorage)
-        T *dbegin, *dend, *endOfStorage; // abbrev. data begin, data end
+        // allocated buffer in [dbegin, endOfStorage)
+        // free space in [dend, endOfStorage)
+        T *dbegin, *dend, *endOfStorage; // abbrev: data begin, data end
         allocator_type alloc;
 
     };

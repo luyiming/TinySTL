@@ -95,6 +95,29 @@ TEST(VectorTest, Resize) {
     }
 }
 
+TEST(VectorTest, Assign) {
+    TinySTL::vector<int> vec1;
+    vec1.assign(10, 1);
+    EXPECT_EQ(vec1.size(), 10);
+    for (size_t i = 0; i < 10; i++) {
+        EXPECT_EQ(1, vec1.at(i));
+    }
+
+    TinySTL::vector<int> vec2(20, 2);
+    vec2.assign(vec1.begin(), vec1.end());
+    EXPECT_EQ(vec2.size(), 10);
+    for (size_t i = 0; i < 10; i++) {
+        EXPECT_EQ(1, vec2.at(i));
+    }
+
+    TinySTL::vector<int> vec3(20, 2);
+    vec3.assign({ 0,1,2,3,4,5,6,7,8,9 });
+    EXPECT_EQ(vec3.size(), 10);
+    for (size_t i = 0; i < 10; i++) {
+        EXPECT_EQ(i, vec3.at(i));
+    }
+}
+
 TEST(VectorTest, PushAndPop) {
     TinySTL::vector<int> vec;
     for (int i = 0; i < 10; i++) {
@@ -165,5 +188,41 @@ TEST(VectorTest, Erase) {
     }
 }
 
+TEST(VectorTest, Swap) {
+    TinySTL::vector<int> vec1(10, 1);
+    TinySTL::vector<int> vec2(10, 2);
+    swap(vec1, vec2);
+
+    for (size_t i = 0; i < 10; i++) {
+        EXPECT_EQ(vec1.at(i), 2);
+        EXPECT_EQ(vec2.at(i), 1);
+    }
+}
+
+TEST(VectorTest, Relation) {
+    TinySTL::vector<int> vec1;
+    TinySTL::vector<int> vec2(10, 1);
+    EXPECT_TRUE(vec1 < vec2);
+
+    vec1.assign(vec2.begin(), vec2.end());
+    EXPECT_TRUE(vec1 == vec2);
+    EXPECT_FALSE(vec1 < vec2);
+
+    vec1.at(1) = 0;
+    EXPECT_TRUE(vec1 < vec2);
+    EXPECT_TRUE(vec1 != vec2);
+
+    vec1.at(1) = 2;
+    EXPECT_TRUE(vec1 > vec2);
+    EXPECT_TRUE(vec1 != vec2);
+
+    vec1.assign(5, 1);
+    EXPECT_TRUE(vec1 < vec2);
+    EXPECT_TRUE(vec1 != vec2);
+
+    vec1.assign(15, 1);
+    EXPECT_TRUE(vec1 > vec2);
+    EXPECT_TRUE(vec1 != vec2);
+}
 
 #endif  // VECTORTEST_HPP
