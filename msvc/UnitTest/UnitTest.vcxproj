@@ -152,6 +152,7 @@
     <ClCompile Include="..\..\test\GraphAdjTest.cpp" />
     <ClCompile Include="..\..\test\IteratorTest.cpp" />
     <ClCompile Include="..\..\test\MinHeapTest.cpp" />
+    <ClCompile Include="..\..\test\priority_queueTest.cpp" />
     <ClCompile Include="..\..\test\VectorTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -145,6 +145,7 @@
     <ClInclude Include="..\..\include\Iterator.hpp" />
     <ClInclude Include="..\..\include\Memory.hpp" />
     <ClInclude Include="..\..\include\MinHeap.hpp" />
+    <ClInclude Include="..\..\include\priority_queue.hpp" />
     <ClInclude Include="..\..\include\type_traits.hpp" />
     <ClInclude Include="..\..\include\Vector.hpp" />
   </ItemGroup>
