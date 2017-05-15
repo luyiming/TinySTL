@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Algorithm.hpp" />
+    <ClInclude Include="..\..\include\Deque.hpp" />
     <ClInclude Include="..\..\include\Graph.hpp" />
     <ClInclude Include="..\..\include\GraphAdj.hpp" />
     <ClInclude Include="..\..\include\Iterator.hpp" />
