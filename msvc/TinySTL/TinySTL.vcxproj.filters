@@ -28,15 +28,6 @@
     <ClInclude Include="..\..\include\Vector.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\detail\MinHeap.impl.hpp">
-      <Filter>Detail Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\detail\Vector.impl.hpp">
-      <Filter>Detail Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\algorithm\closestPairOfPoints.hpp">
-      <Filter>Detail Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Memory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

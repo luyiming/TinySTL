@@ -4,6 +4,8 @@
 #include "gtest/gtest.h"
 #include "MinHeap.hpp"
 
+using TinySTL::MinHeap;
+
 TEST(MinHeapTest, Zero) {
     MinHeap<int> heap;
     EXPECT_TRUE(heap.isEmpty());

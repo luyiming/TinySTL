@@ -70,8 +70,8 @@ std::ostream& operator<<(std::ostream& os, const A& rhs) {
 TEST(IteratorTest, Test1) {
     A a;
     for (auto it = a.begin(); it != a.end(); it++) {
-        std::cout << *it << std::endl;
+        // std::cout << *it << std::endl;
     }
     test_iterator<A> it2(&a);
-    it2->func();
+    // it2->func();
 }

@@ -149,7 +149,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\test\closestPairOfPointsTest.cpp" />
     <ClCompile Include="..\..\test\GraphAdjTest.cpp" />
     <ClCompile Include="..\..\test\IteratorTest.cpp" />
     <ClCompile Include="..\..\test\MinHeapTest.cpp" />
