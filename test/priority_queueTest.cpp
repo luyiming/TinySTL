@@ -41,3 +41,24 @@ TEST(PriorityQueueTest, test2) {
     }
     EXPECT_TRUE(pq2.empty());
 }
+
+class Item {
+public:
+    int k;
+    Item(int n) :k(n) {}
+    bool operator<(const Item& rhs) const { return k > rhs.k; }
+};
+
+TEST(PriorityQueueTest, test3) {
+    TinySTL::priority_queue<Item> pq;
+    EXPECT_TRUE(pq.empty());
+
+    for (int i = 10; i > 0; i--) {
+        pq.push(Item(i));
+    }
+
+    for (int i = 10; i > 0; i--) {
+        EXPECT_EQ(i, pq.top().k);
+        pq.pop();
+    }
+}
