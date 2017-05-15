@@ -147,6 +147,7 @@
     <ClInclude Include="..\..\include\MinHeap.hpp" />
     <ClInclude Include="..\..\include\priority_queue.hpp" />
     <ClInclude Include="..\..\include\type_traits.hpp" />
+    <ClInclude Include="..\..\include\UFSet.hpp" />
     <ClInclude Include="..\..\include\Vector.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
