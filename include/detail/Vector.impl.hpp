@@ -1,10 +1,3 @@
-/**
- * @file    Vector.hpp
- * @author  Lu Yiming <luyimingchn@gmail.com>
- * @version 1.0
- * @date    2017-1-4
- */
-
 #ifndef VECTOR_IMPL_H
 #define VECTOR_IMPL_H
 

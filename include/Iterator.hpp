@@ -1,6 +1,8 @@
 #ifndef ITERATOR_HPP
 #define ITERATOR_HPP
 
+#include "type_traits.hpp"
+
 namespace TinySTL {
     namespace Iterator {
 
@@ -24,10 +26,6 @@ namespace TinySTL {
             using pointer           = Pointer;
             using reference         = Reference;
         };
-
-        // ALIAS TEMPLATE void_t
-        template<typename... Types>
-        using void_t = void;
      
         // TEMPLATE CLASS iterator_traits
         template<typename, typename = void>
