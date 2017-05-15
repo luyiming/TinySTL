@@ -113,7 +113,6 @@ TEST(VectorTest, PushAndPop) {
 
 TEST(VectorTest, Insert) {
     TinySTL::vector<int> vec;
-
     for (size_t i = 0; i < 100; i++) {
         vec.insert(vec.begin() + i, i);
     }

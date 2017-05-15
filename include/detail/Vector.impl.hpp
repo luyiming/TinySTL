@@ -9,9 +9,6 @@
 #define VECTOR_IMPL_H
 
 #include <cassert>
-#include <cstdlib>
-#include <iostream>
-#include <memory>
 
 #include "Vector.hpp"
 #include "..\Vector.hpp"
@@ -33,7 +30,7 @@ namespace TinySTL {
             dbegin = nullptr;
         } else {
             dbegin = alloc.allocate(n);
-            std::uninitialized_fill_n(dbegin, n, value_type());
+            TinySTL::uninitialized_fill_n(dbegin, n, value_type());
         }
         dend         = dbegin + n;
         endOfStorage = dend;
@@ -46,7 +43,7 @@ namespace TinySTL {
             dbegin = nullptr;
         } else {
             dbegin = alloc.allocate(n);
-            std::uninitialized_fill_n(dbegin, n, val);
+            TinySTL::uninitialized_fill_n(dbegin, n, val);
         }
         dend         = dbegin + n;
         endOfStorage = dend;
@@ -61,7 +58,7 @@ namespace TinySTL {
             dbegin = nullptr;
         } else {
             dbegin = alloc.allocate(n);
-            std::uninitialized_copy(first, last, dbegin);
+            TinySTL::uninitialized_copy(first, last, dbegin);
         }
         dend         = dbegin + n;
         endOfStorage = dend;
@@ -75,7 +72,7 @@ namespace TinySTL {
             dbegin = nullptr;
         } else {
             dbegin = alloc.allocate(allocSize);
-            std::uninitialized_copy(x.dbegin, x.dend, dbegin);
+            TinySTL::uninitialized_copy(x.dbegin, x.dend, dbegin);
         }
         dend         = dbegin + (x.dend - x.dbegin);
         endOfStorage = dbegin + allocSize;
@@ -101,7 +98,7 @@ namespace TinySTL {
             dbegin = nullptr;
         } else {
             dbegin = alloc.allocate(allocSize);
-            std::uninitialized_copy(il.begin(), il.end(), dbegin);
+            TinySTL::uninitialized_copy(il.begin(), il.end(), dbegin);
         }
         dend         = dbegin + allocSize;
         endOfStorage = dend;
@@ -125,7 +122,7 @@ namespace TinySTL {
             difference_type allocSize = x.endOfStorage - x.dbegin;
             if (allocSize > 0) {
                 dbegin = alloc.allocate(allocSize);
-                std::uninitialized_copy(x.dbegin, x.dend, dbegin);
+                TinySTL::uninitialized_copy(x.dbegin, x.dend, dbegin);
             } else {
                 dbegin = nullptr;
             }
@@ -145,14 +142,14 @@ namespace TinySTL {
             }
             dend = dbegin + n;
         } else if (n <= maxSize) {
-            std::uninitialized_fill(dend, dbegin + n, value_type());
+            TinySTL::uninitialized_fill(dend, dbegin + n, value_type());
             dend = dbegin + n;
         } else {
             T* oldBegin = dbegin;
             T* oldEnd   = dend;
             dbegin      = alloc.allocate(n);
-            std::uninitialized_copy_n(oldBegin, currentSize, dbegin);
-            std::uninitialized_fill(dbegin + currentSize, dbegin + n, value_type());
+            TinySTL::uninitialized_copy_n(oldBegin, currentSize, dbegin);
+            TinySTL::uninitialized_fill(dbegin + currentSize, dbegin + n, value_type());
             dend         = dbegin + n;
             endOfStorage = dend;
             for (T* p = oldBegin; p != oldEnd; ++p) {
@@ -172,14 +169,14 @@ namespace TinySTL {
             }
             dend = dbegin + n;
         } else if (n <= maxSize) {
-            std::uninitialized_fill(dend, dbegin + n, val);
+            TinySTL::uninitialized_fill(dend, dbegin + n, val);
             dend = dbegin + n;
         } else {
             T* oldBegin = dbegin;
             T* oldEnd   = dend;
             dbegin      = alloc.allocate(n);
-            std::uninitialized_copy_n(oldBegin, currentSize, dbegin);
-            std::uninitialized_fill(dbegin + currentSize, dbegin + n, val);
+            TinySTL::uninitialized_copy_n(oldBegin, currentSize, dbegin);
+            TinySTL::uninitialized_fill(dbegin + currentSize, dbegin + n, val);
             dend         = dbegin + n;
             endOfStorage = dend;
             for (T* p = oldBegin; p != oldEnd; ++p) {
@@ -198,14 +195,16 @@ namespace TinySTL {
             T* oldEnd   = dend;
             dbegin      = alloc.allocate(n);
             if (currentSize > 0) {
-                std::uninitialized_copy_n(oldBegin, currentSize, dbegin);
+                TinySTL::uninitialized_copy_n(oldBegin, currentSize, dbegin);
             }
             dend         = dbegin + currentSize;
             endOfStorage = dbegin + n;
-            for (T* p = oldBegin; p != oldEnd; ++p) {
-                alloc.destroy(p);
+            if (currentSize > 0) {
+                for (T* p = oldBegin; p != oldEnd; ++p) {
+                    alloc.destroy(p);
+                }
+                alloc.deallocate(oldBegin, maxSize);
             }
-            alloc.deallocate(oldBegin, maxSize);
         }
     }
 
@@ -240,7 +239,7 @@ namespace TinySTL {
         for (iterator p = dbegin; p != dend; p++) {
             alloc.destroy(p);
         }
-        uninitialized_copy(first, last, dbegin);
+        TinySTL::uninitialized_copy(first, last, dbegin);
         dend = dbegin + n;
     }
 
@@ -252,7 +251,7 @@ namespace TinySTL {
         for (iterator p = dbegin; p != dend; p++) {
             alloc.destroy(p);
         }
-        uninitialized_fill_n(dbegin, n, val);
+        TinySTL::uninitialized_fill_n(dbegin, n, val);
         dend = dbegin + n;
     }
 
@@ -265,7 +264,7 @@ namespace TinySTL {
         for (iterator p = dbegin; p != dend; p++) {
             alloc.destroy(p);
         }
-        uninitialized_copy(il.begin(), il.end(), dbegin);
+        TinySTL::uninitialized_copy(il.begin(), il.end(), dbegin);
         dend = dbegin + n;
     }
 
@@ -311,7 +310,7 @@ namespace TinySTL {
         if (currentSize + n > maxSize) {
             overflowHandle(currentSize + n);
         }
-        for (size_type i = currentSize + n - 1; i != pos + n; --i) {
+        for (size_type i = currentSize + n - 1; i >= pos + n; --i) {
             dbegin[i] = dbegin[i - n];
         }
         for (size_type i = pos; i < pos + n; ++i) {
@@ -335,7 +334,7 @@ namespace TinySTL {
         for (int i = currentSize + n - 1; i >= pos + n; --i) {
             dbegin[i] = dbegin[i - n];
         }
-        std::uninitialized_copy(first, last, dbegin + pos);
+        TinySTL::uninitialized_copy(first, last, dbegin + pos);
         dend += n;
         return dbegin + pos + n - 1;
     }
@@ -370,7 +369,7 @@ namespace TinySTL {
         for (int i = currentSize + n - 1; i >= pos + n; --i) {
             dbegin[i] = dbegin[i - n];
         }
-        uninitialized_copy(il.begin(), il.end(), dbegin + pos);
+        TinySTL::uninitialized_copy(il.begin(), il.end(), dbegin + pos);
         dend += n;
         return dbegin + pos + n - 1;
     }

@@ -32,7 +32,7 @@ namespace TinySTL {
         // TEMPLATE CLASS iterator_traits
         template<typename, typename = void>
         struct iterator_traits_base
-        {	// empty for non-iterators
+        {   // empty for non-iterators
         };
 
         template<typename Iter>
@@ -43,7 +43,7 @@ namespace TinySTL {
             typename Iter::pointer,
             typename Iter::reference
         > >
-        {	// defined if Iter::* types exist
+        {   // defined if Iter::* types exist
             using iterator_category = typename Iter::iterator_category;
             using value_type        = typename Iter::value_type;
             using difference_type   = typename Iter::difference_type;
@@ -54,7 +54,7 @@ namespace TinySTL {
         template<typename Iter>
         struct iterator_traits
             : iterator_traits_base<Iter>
-        {	// get traits from iterator Iter, if possible
+        {   // get traits from iterator Iter, if possible
         };
 
         template<typename T>
@@ -69,7 +69,7 @@ namespace TinySTL {
 
         template<typename T>
         struct iterator_traits<const T *>
-        {	// get traits from const pointer
+        {   // get traits from const pointer
             using iterator_category = random_access_iterator_tag;
             using value_type        = T;
             using difference_type   = ptrdiff_t;

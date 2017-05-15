@@ -9,13 +9,13 @@
 #define VECTOR_HPP
 
 #include <initializer_list>
-#include <memory>
 #include <stdexcept>
 #include "Iterator.hpp"
+#include "Memory.hpp"
 
 namespace TinySTL {
-
-    template <typename T, typename Alloc = std::allocator<T>>
+    
+    template <typename T, typename Alloc = TinySTL::allocator<T>>
     class vector {
        public:
         using value_type      = T;
@@ -91,7 +91,7 @@ namespace TinySTL {
         const_pointer   data() const noexcept { return dbegin; }
 
         // Modifiers
-        template <class InputIterator, typename = typename TinySTL::Iterator::iterator_traits<InputIterator>::value_type>
+        template <typename InputIterator, typename = typename TinySTL::Iterator::iterator_traits<InputIterator>::value_type>
         void assign(InputIterator first, InputIterator last);  // range (1)
         void assign(size_type n, const value_type& val);       // fill  (2)
         void assign(std::initializer_list<value_type> il);     // initializer list (3)
@@ -103,7 +103,7 @@ namespace TinySTL {
         
         iterator insert(const_iterator position, const value_type& val);                   // single element (1)
         iterator insert(const_iterator position, size_type n, const value_type& val);      // fill (2)
-        template <class InputIterator, typename = typename TinySTL::Iterator::iterator_traits<InputIterator>::value_type>
+        template <typename InputIterator, typename = typename TinySTL::Iterator::iterator_traits<InputIterator>::value_type>
         iterator insert(const_iterator position, InputIterator first, InputIterator last); // range (3)
         iterator insert(const_iterator position, value_type&& val);                        // move (4)
         iterator insert(const_iterator position, std::initializer_list<value_type> il);    // initializer list (5)
